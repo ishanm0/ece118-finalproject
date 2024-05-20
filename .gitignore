@@ -134,3 +134,5 @@ $RECYCLE.BIN/
 /unoTest.X/build/
 /unoTest.X/dist/
 C:
+/driveTest.X/build/
+/driveTest.X/dist/
