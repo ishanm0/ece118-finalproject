@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   mainPart6.c
  * Author: yafit
  *
@@ -6,7 +6,7 @@
  */
 
 /*
- * 
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,72 +19,192 @@
 #include "pwm.h"
 #include "IO_Ports.h"
 
-int main(void) {
+#define BUMPER_PIN_FLR PIN3
+#define BUMPER_PIN_FLB PIN4
+#define BUMPER_PIN_FRR PIN5
+#define BUMPER_PIN_FRB PIN6
+#define BUMPER_PIN_BLR PIN7
+#define BUMPER_PIN_BLB PIN8
+#define BUMPER_PIN_BRR PIN9
+#define BUMPER_PIN_BRB PIN11
+
+#define DELAY(x)                          \
+    for (int wait = 0; wait <= x; wait++) \
+    {                                     \
+        asm("nop");                       \
+    }
+
+int main(void)
+{
     printf("Attempting setup and everything... \r\n");
 
     BOARD_Init();
-    AD_Init();
+    // AD_Init();
 
-//    AD_AddPins(AD_PORTV3);
-//    AD_AddPins(AD_PORTV4);
-//    AD_AddPins(AD_PORTV5);
-//    AD_AddPins(AD_PORTV6);
-    
-    IO_PortsSetPortInputs(PORTZ, PIN3); // Bumper Front Left-Left
-    IO_PortsSetPortInputs(PORTZ, PIN4); // Bumper Front Left-Right
-    IO_PortsSetPortInputs(PORTZ, PIN5); // Bumper Front Right-Left
-    IO_PortsSetPortInputs(PORTZ, PIN6); // Bumper Front Right-Right
-    IO_PortsSetPortInputs(PORTZ, PIN7); // Bumper Back Left-Left
-    IO_PortsSetPortInputs(PORTZ, PIN8); // Bumper Back Left-Right
-    IO_PortsSetPortInputs(PORTZ, PIN9); // Bumper Back Right-Left
-    IO_PortsSetPortInputs(PORTZ, PIN11); // Bumper Back Right-Right
+    //    AD_AddPins(AD_PORTV3);
+    //    AD_AddPins(AD_PORTV4);
+    //    AD_AddPins(AD_PORTV5);
+    //    AD_AddPins(AD_PORTV6);
 
-    while (1) {
-        //Sensors Testing
-//        if (AD_IsNewDataReady() == TRUE) {
-//            unsigned int OD1 = AD_ReadADPin(AD_PORTV3);
-//            unsigned int OD2 = AD_ReadADPin(AD_PORTV4);
-//            unsigned int OD3 = AD_ReadADPin(AD_PORTV5);
-//            unsigned int OD4 = AD_ReadADPin(AD_PORTV6);
-            
-//            printf("Obstacle Detector 1: %d \r\n\n", OD1);
-//            printf("Obstacle Detector 2: %d \r\n\n", OD2);
-//            printf("Obstacle Detector 3: %d \r\n\n", OD3);
-//            printf("Obstacle Detector 4: %d \r\n\n", OD4);
-//        }
-        
-        //Bumpers Testing
-        if (IO_PortsReadPort(PORTZ) & PIN3) {
-            printf("Bumper Front Left-Left Hit\n");
+    IO_PortsSetPortInputs(PORTZ, BUMPER_PIN_FLR | BUMPER_PIN_FLB | BUMPER_PIN_FRR | BUMPER_PIN_FRB | BUMPER_PIN_BLR | BUMPER_PIN_BLB | BUMPER_PIN_BRR | BUMPER_PIN_BRB);
+    IO_PortsSetPortInputs(PORTX, PIN4); // front right tape sensor
+    IO_PortsSetPortInputs(PORTY, PIN9 | PIN11);        // back left & back right tape sensor
+    IO_PortsSetPortInputs(PORTZ, PIN12);       // front left tape sensor
+
+    uint8_t bumpers = 0;
+    uint8_t tape = 0;
+
+    while (1)
+    {
+        // Sensors Testing
+        //        if (AD_IsNewDataReady() == TRUE) {
+        //            unsigned int OD1 = AD_ReadADPin(AD_PORTV3);
+        //            unsigned int OD2 = AD_ReadADPin(AD_PORTV4);
+        //            unsigned int OD3 = AD_ReadADPin(AD_PORTV5);
+        //            unsigned int OD4 = AD_ReadADPin(AD_PORTV6);
+
+        //            printf("Obstacle Detector 1: %d \r\n\n", OD1);
+        //            printf("Obstacle Detector 2: %d \r\n\n", OD2);
+        //            printf("Obstacle Detector 3: %d \r\n\n", OD3);
+        //            printf("Obstacle Detector 4: %d \r\n\n", OD4);
+        //        }
+
+        // Bumpers Testing
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_FLR) && !(bumpers & 0x01))
+        {
+            bumpers |= 0x01;
+            printf("Bumper Front Left-Red Hit\n");
         }
-        
-        if (IO_PortsReadPort(PORTZ) & PIN4) {
-            printf("Bumper Front Left-Right Hit\n");
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_FLR) && (bumpers & 0x01))
+        {
+            bumpers &= ~0x01;
+            printf("Bumper Front Left-Red Not Hit\n");
         }
-        
-        if (IO_PortsReadPort(PORTZ) & PIN5) {
-            printf("Bumper Front Right-Left Hit\n");
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_FLB) && !(bumpers & 0x02))
+        {
+            bumpers |= 0x02;
+            printf("Bumper Front Left-Black Hit\n");
         }
-        
-        if (IO_PortsReadPort(PORTZ) & PIN6) {
-            printf("Bumper Front Right-Right Hit\n");
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_FLB) && (bumpers & 0x02))
+        {
+            bumpers &= ~0x02;
+            printf("Bumper Front Left-Black Not Hit\n");
         }
-        
-        if (IO_PortsReadPort(PORTZ) & PIN7) {
-            printf("Bumper Back Left-Left Hit\n");
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_FRR) && !(bumpers & 0x04))
+        {
+            bumpers |= 0x04;
+            printf("Bumper Front Right-Red Hit\n");
         }
-        
-        if (IO_PortsReadPort(PORTZ) & PIN8) {
-            printf("Bumper Back Left-Right Hit\n");
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_FRR) && (bumpers & 0x04))
+        {
+            bumpers &= ~0x04;
+            printf("Bumper Front Right-Red Not Hit\n");
         }
-        
-        if (IO_PortsReadPort(PORTZ) & PIN9) {
-            printf("Bumper Back Right-Left Hit\n");
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_FRB) && !(bumpers & 0x08))
+        {
+            bumpers |= 0x08;
+            printf("Bumper Front Right-Black Hit\n");
         }
-        
-        if (IO_PortsReadPort(PORTZ) & PIN11) {
-            printf("Bumper Back Right-Right Hit\n");
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_FRB) && (bumpers & 0x08))
+        {
+            bumpers &= ~0x08;
+            printf("Bumper Front Right-Black Not Hit\n");
         }
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_BLR) && !(bumpers & 0x10))
+        {
+            bumpers |= 0x10;
+            printf("Bumper Back Left-Red Hit\n");
+        }
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_BLR) && (bumpers & 0x10))
+        {
+            bumpers &= ~0x10;
+            printf("Bumper Back Left-Red Not Hit\n");
+        }
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_BLB) && !(bumpers & 0x20))
+        {
+            bumpers |= 0x20;
+            printf("Bumper Back Left-Black Hit\n");
+        }
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_BLB) && (bumpers & 0x20))
+        {
+            bumpers &= ~0x20;
+            printf("Bumper Back Left-Black Not Hit\n");
+        }
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_BRR) && !(bumpers & 0x40))
+        {
+            bumpers |= 0x40;
+            printf("Bumper Back Right-Red Hit\n");
+        }
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_BRR) && (bumpers & 0x40))
+        {
+            bumpers &= ~0x40;
+            printf("Bumper Back Right-Red Not Hit\n");
+        }
+
+        if ((IO_PortsReadPort(PORTZ) & BUMPER_PIN_BRB) && !(bumpers & 0x80))
+        {
+            bumpers |= 0x80;
+            printf("Bumper Back Right-Black Hit\n");
+        }
+        else if (!(IO_PortsReadPort(PORTZ) & BUMPER_PIN_BRB) && (bumpers & 0x80))
+        {
+            bumpers &= ~0x80;
+            printf("Bumper Back Right-Black Not Hit\n");
+        }
+
+        // Tape Sensors Testing
+
+        if ((IO_PortsReadPort(PORTX) & PIN4) && !(tape & 0x01))
+        {
+            tape |= 0x01;
+            printf("Front Right Tape Sensor On\n");
+        }
+        else if (!(IO_PortsReadPort(PORTX) & PIN4) && (tape & 0x01))
+        {
+            tape &= ~0x01;
+            printf("Front Right Tape Sensor Off\n");
+        }
+
+        if ((IO_PortsReadPort(PORTY) & PIN11) && !(tape & 0x02))
+        {
+            tape |= 0x02;
+            printf("Back Right Tape Sensor On\n");
+        }
+        else if (!(IO_PortsReadPort(PORTY) & PIN11) && (tape & 0x02))
+        {
+            tape &= ~0x02;
+            printf("Back Right Tape Sensor Off\n");
+        }
+
+        if ((IO_PortsReadPort(PORTY) & PIN9) && !(tape & 0x04))
+        {
+            tape |= 0x04;
+            printf("Back Left Tape Sensor On\n");
+        }
+        else if (!(IO_PortsReadPort(PORTY) & PIN9) && (tape & 0x04))
+        {
+            tape &= ~0x04;
+            printf("Back Left Tape Sensor Off\n");
+        }
+
+        if ((IO_PortsReadPort(PORTZ) & PIN12) && !(tape & 0x08))
+        {
+            tape |= 0x08;
+            printf("Front Left Tape Sensor On\n");
+        }
+        else if (!(IO_PortsReadPort(PORTZ) & PIN12) && (tape & 0x08))
+        {
+            tape &= ~0x08;
+            printf("Front Left Tape Sensor Off\n");
+        }
+
     }
     return 0;
 }

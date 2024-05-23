@@ -9,7 +9,8 @@
             <sourceEncoding>ISO-8859-1</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>/Users/ishanmadan/Documents/School/ECE 118/Labs/ECE118</sourceRootElem>
+                <sourceRootElem>C:/ECE118/include</sourceRootElem>
+                <sourceRootElem>.</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

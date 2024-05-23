@@ -37,6 +37,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>C:/ECE118</Elem>
+    <Elem>.</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
