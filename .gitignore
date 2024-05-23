@@ -131,9 +131,12 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/c,macos,windows,linux
 
+C:
 /unoTest.X/build/
 /unoTest.X/dist/
-C:
 /driveTest.X/build/
 /driveTest.X/dist/
 /Sensors and Bumpers Tester.X/build/
+/Sensors and Bumpers Tester.X/dist/
+/Sensors Reading.X/build/
+/Sensors Reading.X/dist/
