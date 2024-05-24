@@ -164,16 +164,16 @@ int main(void) {
         IO_PortsSetPortInputs(PORTZ, 0x1ff8); 
 
 
-//        while (1) {
-//            
-//            //printf("%x \n",(IO_PortsReadPort(PORTZ) & PIN12));
-//            if (((IO_PortsReadPort(PORTZ) & PIN12) >> 12)){
-//                printf("on\n");
-//            }else{
-//                printf("off\n");
-//            }
-//
-//        }
+        while (1) {
+            
+            //printf("%x \n",(IO_PortsReadPort(PORTZ) & PIN12));
+            if (((IO_PortsReadPort(PORTZ) & PIN12) >> 12)){
+                printf("on\n");
+            }else{
+                printf("off\n");
+            }
+
+        }
 
 
     /* user initialization code goes here */

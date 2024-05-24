@@ -51,8 +51,8 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>noID</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>4.21</languageToolchainVersion>
-        <platform>4</platform>
+        <languageToolchainVersion>4.10</languageToolchainVersion>
+        <platform>3</platform>
       </toolsSet>
       <packs>
         <pack name="PIC32MX_DFP" vendor="Microchip" version="1.5.259"/>
@@ -93,7 +93,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
         <property key="extra-include-directories"
-                  value=".;../../../../Documents/School/ECE 118/Labs/ECE118/include"/>
+                  value=".;../../../../Documents/School/ECE 118/Labs/ECE118/include;C:/ECE118/include"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="false"/>
