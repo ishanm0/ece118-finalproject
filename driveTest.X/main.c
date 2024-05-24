@@ -49,11 +49,12 @@ int main(void)
     PWM_Init();
 
     PWM_AddPins(PWM_PORTX11 | PWM_PORTY10);
-    IO_PortsSetPortOutputs(PORTY, PIN4 | PIN6 | PIN7 | PIN8);
-    IO_PortsClearPortBits(PORTY, PIN4 | PIN6 | PIN7 | PIN8);
-
+    IO_PortsSetPortOutputs(PORTY, PIN4 | PIN6 | PIN7 | PIN8 | PIN12);
+    IO_PortsClearPortBits(PORTY, PIN4 | PIN6 | PIN7 | PIN8 | PIN12);
+    //PIN Y12 
     while (1)
     {
+        IO_PortsSetPortBits(PORTY, PIN12);
         printf("Starting...\r\n");
         left(1000);
         right(1000);

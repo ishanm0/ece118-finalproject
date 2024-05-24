@@ -93,6 +93,7 @@ uint8_t TemplateCheckBattery(void) {
     ES_Event thisEvent;
     uint8_t returnVal = FALSE;
     uint16_t batVoltage = AD_ReadADPin(BAT_VOLTAGE); // read the battery voltage
+    printf("%u\r\n", batVoltage);
 
     if (batVoltage > BATTERY_DISCONNECT_THRESHOLD) { // is battery connected?
         curEvent = BATTERY_CONNECTED;
@@ -115,14 +116,16 @@ uint8_t TemplateCheckBattery(void) {
 
 // 0 =
 // 1 =
+
 uint8_t CheckTopLeftTape(void) {
+    //IO_PortsSetPortInputs(PORTZ, PIN12);
     static ES_EventTyp_t lastEvent = TAPE_NOT_DETECTED;
     ES_EventTyp_t curEvent;
     ES_Event thisEvent;
     uint8_t returnVal = FALSE;
-    uint16_t TAPE =  IO_PortsReadPort(PORTZ) & PIN8; // read the battery voltage
-
-    if (TAPE == 100) { // is battery connected?
+    uint16_t TAPE = IO_PortsReadPort(PORTZ) & PIN12; 
+    printf("%x\r\n", IO_PortsReadPort(PORTZ));
+    if (TAPE) { 
         curEvent = TAPE_DETECTED;
     } else {
         curEvent = TAPE_NOT_DETECTED;
@@ -132,12 +135,14 @@ uint8_t CheckTopLeftTape(void) {
         thisEvent.EventParam = TAPE;
         returnVal = TRUE;
         lastEvent = curEvent; // update history
+        
 #ifndef EVENTCHECKER_TEST           // keep this as is for test harness
         PostGenericService(thisEvent);
 #else
         SaveEvent(thisEvent);
 #endif   
     }
+//    printf("hi!\r\n");
     return (returnVal);
 }
 
@@ -152,36 +157,44 @@ void PrintEvent(void);
 int main(void) {
     BOARD_Init();
     PWM_Init();
-    IO_PortsSetPortOutputs(PORTZ , PIN7);
     
-//    IO_PortsSetPortOutputs(PORTZ , PIN7);
-//    uint16_t READ;
-//    while(1){
-//        READ = IO_PortsReadPort(PORTZ) & PIN8;
-//        printf("%x \n\n", READ);
-//    }
-//    
- 
+    
+    //
+        IO_PortsSetPortInputs(PORTZ, PIN12); 
+        IO_PortsSetPortInputs(PORTZ, 0x1ff8); 
+
+
+//        while (1) {
+//            
+//            //printf("%x \n",(IO_PortsReadPort(PORTZ) & PIN12));
+//            if (((IO_PortsReadPort(PORTZ) & PIN12) >> 12)){
+//                printf("on\n");
+//            }else{
+//                printf("off\n");
+//            }
+//
+//        }
+
+
     /* user initialization code goes here */
 
     // Do not alter anything below this line
-    int i;
+//    int i;
+//
+//    printf("\r\nEvent checking test harness for %s", __FILE__);
+//
+//    while (1){
+//        if (IsTransmitEmpty()) {
+//            for (i = 0; i< sizeof (EventList) >> 2; i++) {
+//                if (EventList[i]() == TRUE) {
+//                    PrintEvent();
+//                    break;
+//                }
+//            }
+//        }
+//    }
 
-    printf("\r\nEvent checking test harness for %s", __FILE__);
 
-    while (1) {
-        if (IsTransmitEmpty()) {
-            for (i = 0; i< sizeof (EventList) >> 2; i++) {
-                if (EventList[i]() == TRUE) {
-                    PrintEvent();
-                    break;
-                }
-
-            }
-        }
-    }
-    
-    
 }
 
 void PrintEvent(void) {
