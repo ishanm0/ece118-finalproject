@@ -3,14 +3,13 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>unoTest</name>
-            <creation-uuid>096c10fd-dab9-4f6a-ba47-39d37e17529b</creation-uuid>
+            <name>EventCheckerTestv2</name>
+            <creation-uuid>90558ba5-8130-4011-9d7f-b206ed5e5a6a</creation-uuid>
             <make-project-type>0</make-project-type>
             <sourceEncoding>ISO-8859-1</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>C:/ECE118</sourceRootElem>
-                <sourceRootElem>.</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
