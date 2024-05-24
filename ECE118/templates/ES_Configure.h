@@ -46,7 +46,6 @@ typedef enum {
     /* User-defined events start here */
     BATTERY_CONNECTED,
     BATTERY_DISCONNECTED,
-    BUMPER,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
@@ -63,7 +62,6 @@ static const char *EventNames[] = {
 	"ES_TIMERSTOPPED",
 	"BATTERY_CONNECTED",
 	"BATTERY_DISCONNECTED",
-    "BUMPER",
 	"NUMBEROFEVENTS",
 };
 
@@ -119,7 +117,7 @@ static const char *EventNames[] = {
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 2
+#define NUM_SERVICES 1
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service
@@ -139,11 +137,11 @@ static const char *EventNames[] = {
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public fuction prototypes
-#define SERV_1_HEADER "TemplateService.h"
+#define SERV_1_HEADER "TestService.h"
 // the name of the Init function
-#define SERV_1_INIT InitTemplateService
+#define SERV_1_INIT TestServiceInit
 // the name of the run function
-#define SERV_1_RUN RunTemplateService
+#define SERV_1_RUN TestServiceRun
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 3
 #endif
