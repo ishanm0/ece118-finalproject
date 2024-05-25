@@ -136,13 +136,49 @@ uint8_t CheckBumpers(void)
 {
     uint8_t returnVal = FALSE;
     ES_Event thisEvent;
-    thisEvent.EventParam |= IO_PortsReadPort(BUMPER_PORT) >> 3;
-    thisEvent.EventParam |= (thisEvent.EventParam & PIN11) >> 1;
-    thisEvent.EventParam &= 0x0ff; // mask off the unused bits - only 8 bits are used
-    if (thisEvent.EventParam != bumperState)
+    uint16_t newBumperState = IO_PortsReadPort(BUMPER_PORT) >> 3;
+    // printf("\r\n%x", newBumperState);
+    newBumperState &= (~BIT_7); // mask off bit 7 (glitchy)
+    newBumperState |= (newBumperState & BIT_8) >> 1;
+    newBumperState &= 0xff; // mask off the repeated bit and any unused bits
+
+    // printf(" %x", newBumperState);
+
+    if (newBumperState != bumperState)
     {
-        bumperState = thisEvent.EventParam;
+        uint16_t xor = newBumperState ^ bumperState;
+        thisEvent.EventParam = (xor&newBumperState) | ((xor&bumperState) << 8);
+        // any high bit in the right 8 bits represents a bumper that was pressed
+        // any high bit in the left 8 bits represents a bumper that was released
+        bumperState = newBumperState;
         thisEvent.EventType = BUMPER;
+        returnVal = TRUE;
+        PostTemplateService(thisEvent);
+    }
+    return returnVal;
+}
+
+static uint16_t tapeState = 0;
+
+uint8_t CheckTapeSensors(void)
+{
+    uint8_t returnVal = FALSE;
+    ES_Event thisEvent;
+    uint16_t newTapeState = (IO_PortsReadPort(PORTX) & PIN4) >> 4; // shift from bit_4 to bit_0
+    newTapeState |= (IO_PortsReadPort(PORTY) & PIN9) >> (9 - 1);   // shift from bit_9 to bit_1
+    newTapeState |= (IO_PortsReadPort(PORTY) & PIN11) >> (11 - 2); // etc
+    newTapeState |= (IO_PortsReadPort(PORTZ) & PIN12) >> (12 - 3);
+    newTapeState &= 0xf; // mask off the unused bits - only 4 bits are used
+
+    // printf("\r\n%x", newTapeState);
+    if (newTapeState != tapeState)
+    {
+        uint16_t xor = newTapeState ^ tapeState;
+        thisEvent.EventParam = (xor&newTapeState) | ((xor&tapeState) << 4);
+        // any high bit in the right 4 bits represents a tape sensor that is now on tape
+        // any high bit in the left 4 bits represents a tape sensor that is now off tape
+        tapeState = newTapeState;
+        thisEvent.EventType = TAPE;
         returnVal = TRUE;
         PostTemplateService(thisEvent);
     }

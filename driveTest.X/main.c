@@ -54,7 +54,7 @@ int main(void)
     //PIN Y12 
     while (1)
     {
-        IO_PortsSetPortBits(PORTY, PIN12);
+        IO_PortsClearPortBits(PORTY, PIN12);
         printf("Starting...\r\n");
         left(1000);
         right(1000);
