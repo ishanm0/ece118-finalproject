@@ -3,13 +3,13 @@
  ******************************************************************************/
 
 #include "ES_Configure.h"
-#include "TemplateEventChecker.h"
+#include "EventChecker.h"
 #include "ES_Events.h"
 #include "serial.h"
 #include "AD.h"
 
-#include "TemplateService.h"
-// #include "NavigationTestHSM.h"
+// #include "TemplateService.h"
+#include "NavigationTestHSM.h"
 #include <stdio.h>
 #include "IO_Ports.h"
 
@@ -91,7 +91,7 @@ uint8_t TemplateCheckBattery(void)
         returnVal = TRUE;
         lastEvent = curEvent; // update history
 #ifndef EVENTCHECKER_TEST     // keep this as is for test harness
-        PostTemplateService(thisEvent);
+        PostNavigationTestHSM(thisEvent);
 #else
         SaveEvent(thisEvent);
 #endif
@@ -134,7 +134,7 @@ uint8_t CheckBumpers(void)
         bumperState = newBumperState;
         thisEvent.EventType = BUMPER;
         returnVal = TRUE;
-        PostTemplateService(thisEvent);
+        PostNavigationTestHSM(thisEvent);
     }
     return returnVal;
 }
@@ -159,7 +159,7 @@ uint8_t CheckTapeSensors(void)
         tapeState = newTapeState;
         thisEvent.EventType = TAPE;
         returnVal = TRUE;
-        PostTemplateService(thisEvent);
+        PostNavigationTestHSM(thisEvent);
     }
     return returnVal;
 }
