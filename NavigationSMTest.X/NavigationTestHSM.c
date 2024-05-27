@@ -32,6 +32,9 @@
 #define TAPE_BR BIT_2
 #define TAPE_FL BIT_3
 
+#define DRIVE_SPEED 1000
+#define TURN_SPEED 500
+
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
@@ -169,8 +172,8 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         {
         case ES_ENTRY:
             printf("\r\ndriving!");
-            left(1000);
-            right(1000);
+            left(DRIVE_SPEED);
+            right(DRIVE_SPEED);
             break;
         case TAPE:
             if (ThisEvent.EventParam & TAPE_FL)
@@ -199,8 +202,8 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         switch (ThisEvent.EventType)
         {
         case ES_ENTRY:
-            left(-1000);
-            right(1000);
+            left(-TURN_SPEED);
+            right(TURN_SPEED);
             break;
         case TAPE:
             if (ThisEvent.EventParam & TAPE_BR)
@@ -215,8 +218,8 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         switch (ThisEvent.EventType)
         {
         case ES_ENTRY:
-            left(1000);
-            right(-1000);
+            left(TURN_SPEED);
+            right(-TURN_SPEED);
             break;
         case TAPE:
             if (ThisEvent.EventParam & TAPE_BL)
