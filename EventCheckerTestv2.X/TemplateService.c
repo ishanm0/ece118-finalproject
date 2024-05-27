@@ -25,17 +25,38 @@
 #include "TemplateService.h"
 #include <stdio.h>
 
+#include "IO_Ports.h"
+#include "pwm.h"
+#include "RC_Servo.h"
+
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
 
 #define BATTERY_DISCONNECT_THRESHOLD 175
 
+#define BUMPER_FLR BIT_0
+#define BUMPER_FLB BIT_1
+#define BUMPER_FRR BIT_2
+#define BUMPER_FRB BIT_3
+#define BUMPER_BLR BIT_4
+#define BUMPER_BLB BIT_5
+#define BUMPER_BRR BIT_6
+#define BUMPER_BRB BIT_7
+
+#define TAPE_FR BIT_0
+#define TAPE_BL BIT_1
+#define TAPE_BR BIT_2
+#define TAPE_FL BIT_3
+
 /*******************************************************************************
  * PRIVATE FUNCTION PROTOTYPES                                                 *
  ******************************************************************************/
 /* Prototypes for private functions for this machine. They should be functions
    relevant to the behavior of this state machine */
+
+void left(int speed);
+void right(int speed);
 
 /*******************************************************************************
  * PRIVATE MODULE VARIABLES                                                    *
@@ -44,6 +65,9 @@
  * as well. */
 
 static uint8_t MyPriority;
+
+static int leftDriving;
+static int rightDriving;
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -69,11 +93,17 @@ uint8_t InitTemplateService(uint8_t Priority)
     // this includes all hardware and software initialization
     // that needs to occur.
 
+    left(0);
+    right(0);
+
     // post the initial transition event
     ThisEvent.EventType = ES_INIT;
-    if (ES_PostToService(MyPriority, ThisEvent) == TRUE) {
+    if (ES_PostToService(MyPriority, ThisEvent) == TRUE)
+    {
         return TRUE;
-    } else {
+    }
+    else
+    {
         return FALSE;
     }
 }
@@ -97,9 +127,9 @@ uint8_t PostTemplateService(ES_Event ThisEvent)
  * @param ThisEvent - the event (type and param) to be responded.
  * @return Event - return event (type and param), in general should be ES_NO_EVENT
  * @brief This function is where you implement the whole of the service,
- *        as this is called any time a new event is passed to the event queue. 
+ *        as this is called any time a new event is passed to the event queue.
  * @note Remember to rename to something appropriate.
- *       Returns ES_NO_EVENT if the event have been "consumed." 
+ *       Returns ES_NO_EVENT if the event have been "consumed."
  * @author J. Edward Carryer, 2011.10.23 19:25 */
 ES_Event RunTemplateService(ES_Event ThisEvent)
 {
@@ -113,7 +143,8 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
     ES_EventTyp_t curEvent;
     uint16_t batVoltage = AD_ReadADPin(BAT_VOLTAGE); // read the battery voltage
 
-    switch (ThisEvent.EventType) {
+    switch (ThisEvent.EventType)
+    {
     case ES_INIT:
         // No hardware initialization or single time setups, those
         // go in the init function above.
@@ -121,27 +152,119 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
         // This section is used to reset service for some reason
         break;
 
+    // case BUMPER:
+    //     printf("\r\nBumper: %04x", ThisEvent.EventParam);
+    //     if ((ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB)) && !leftDriving)
+    //     {
+    //         // left wheel forward
+    //         printf("\r\nLeft wheel forward");
+    //         leftDriving = 1;
+    //         left(1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_FLR | BUMPER_FLB)) && (leftDriving == 1))
+    //     {
+    //         // left wheel stop
+    //         printf("\r\nLeft wheel stop");
+    //         leftDriving = 0;
+    //         left(0);
+    //     }
+
+    //     if ((ThisEvent.EventParam & (BUMPER_BLR | BUMPER_BLB)) && !leftDriving)
+    //     {
+    //         // left wheel backward
+    //         printf("\r\nLeft wheel backward");
+    //         leftDriving = -1;
+    //         left(-1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_BLR | BUMPER_BLB)) && (leftDriving == -1))
+    //     {
+    //         // left wheel stop
+    //         printf("\r\nLeft wheel stop");
+    //         leftDriving = 0;
+    //         left(0);
+    //     }
+
+    //     if ((ThisEvent.EventParam & (BUMPER_FRR | BUMPER_FRB)) && !rightDriving)
+    //     {
+    //         // right wheel forward
+    //         printf("\r\nRight wheel forward");
+    //         rightDriving = 1;
+    //         right(1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_FRR | BUMPER_FRB)) && (rightDriving == 1))
+    //     {
+    //         // right wheel stop
+    //         printf("\r\nRight wheel stop");
+    //         rightDriving = 0;
+    //         right(0);
+    //     }
+
+    //     if ((ThisEvent.EventParam & (BUMPER_BRR | BUMPER_BRB)) && !rightDriving)
+    //     {
+    //         // right wheel backward
+    //         printf("\r\nRight wheel backward");
+    //         rightDriving = -1;
+    //         right(-1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_BRR | BUMPER_BRB)) && (rightDriving == -1))
+    //     {
+    //         // right wheel stop
+    //         printf("\r\nRight wheel stop");
+    //         rightDriving = 0;
+    //         right(0);
+    //     }
+    //     break;
+
+    // case TAPE:
+    //     printf("\r\nTape: %x", ThisEvent.EventParam);
+    //     if ((ThisEvent.EventParam & (TAPE_FL | TAPE_FR)))
+    //     {
+    //         // intake motor on
+    //         IO_PortsSetPortBits(PORTY, PIN12);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 4) & (TAPE_FL | TAPE_FR)))
+    //     {
+    //         // intake motor off
+    //         IO_PortsClearPortBits(PORTY, PIN12);
+    //     }
+
+    //     if ((ThisEvent.EventParam & (TAPE_BL | TAPE_BR)))
+    //     {
+    //         // door open
+    //         RC_SetPulseTime(RC_PORTV03, 2000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 4) & (TAPE_BL | TAPE_BR)))
+    //     {
+    //         // door close
+    //         RC_SetPulseTime(RC_PORTV03, 1000);
+    //     }
+    //     break;
+
     case ES_TIMEOUT:
-        if (batVoltage > BATTERY_DISCONNECT_THRESHOLD) { // is battery connected?
+        if (batVoltage > BATTERY_DISCONNECT_THRESHOLD)
+        { // is battery connected?
             curEvent = BATTERY_CONNECTED;
-        } else {
+        }
+        else
+        {
             curEvent = BATTERY_DISCONNECTED;
         }
-        if (curEvent != lastEvent) { // check for change from last time
+        if (curEvent != lastEvent)
+        { // check for change from last time
             ReturnEvent.EventType = curEvent;
             ReturnEvent.EventParam = batVoltage;
             lastEvent = curEvent; // update history
-#ifndef SIMPLESERVICE_TEST           // keep this as is for test harness
+#ifndef SIMPLESERVICE_TEST        // keep this as is for test harness
             PostGenericService(ReturnEvent);
 #else
             PostTemplateService(ReturnEvent);
-#endif   
+#endif
         }
         break;
-#ifdef SIMPLESERVICE_TEST     // keep this as is for test harness      
+#ifdef SIMPLESERVICE_TEST // keep this as is for test harness
     default:
         printf("\r\nEvent: %s\tParam: 0x%X",
-                EventNames[ThisEvent.EventType], ThisEvent.EventParam);
+               EventNames[ThisEvent.EventType], ThisEvent.EventParam);
         break;
 #endif
     }
@@ -153,3 +276,36 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
  * PRIVATE FUNCTIONs                                                           *
  ******************************************************************************/
 
+void left(int speed)
+{
+    if (speed < 0)
+    {
+        speed = -speed;
+        IO_PortsClearPortBits(PORTY, PIN4);
+        IO_PortsSetPortBits(PORTY, PIN6);
+    }
+    else
+    {
+        IO_PortsSetPortBits(PORTY, PIN4);
+        IO_PortsClearPortBits(PORTY, PIN6);
+    }
+
+    PWM_SetDutyCycle(PWM_PORTX11, speed);
+}
+
+void right(int speed)
+{
+    if (speed < 0)
+    {
+        speed = -speed;
+        IO_PortsClearPortBits(PORTY, PIN7);
+        IO_PortsSetPortBits(PORTY, PIN8);
+    }
+    else
+    {
+        IO_PortsSetPortBits(PORTY, PIN7);
+        IO_PortsClearPortBits(PORTY, PIN8);
+    }
+
+    PWM_SetDutyCycle(PWM_PORTY10, speed);
+}
