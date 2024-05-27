@@ -20,6 +20,7 @@
 
 #define BUMPER_PORT PORTZ
 #define NUM_CHECKS 5
+#define DISTANCE_THRESHOLD 1
 
 /*******************************************************************************
  * EVENTCHECKER_TEST SPECIFIC CODE                                                             *
@@ -49,6 +50,7 @@ static uint8_t bumperState;
 static uint8_t bumperBuffer[NUM_CHECKS];
 static uint8_t idx;
 static uint16_t tapeState = 0;
+static uint16_t distanceState = 0;
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -162,4 +164,40 @@ uint8_t CheckTapeSensors(void)
         PostTemplateService(thisEvent);
     }
     return returnVal;
+}
+
+uint8_t CheckDistanceSensors(void)
+{
+    uint8_t returnVal = FALSE;
+    ES_Event thisEvent;
+    if (AD_IsNewDataReady())
+    {
+        uint16_t newDistance = AD_ReadADPin(AD_PORTV4);
+        printf("\r\n>dist: %d", newDistance);
+        uint16_t newState = 0;
+        if (newDistance > 950 && (distanceState & 0x01))
+        {
+            newState &= 0xfe;
+        }
+        else if (newDistance < 945 && !(distanceState & 0x01))
+        {
+            newState |= 0x01;
+        }
+        else
+        {
+            newState |= (distanceState & 0x01);
+        }
+
+        printf("\r\n>state: %x", newState);
+
+        if (newState != distanceState)
+        {
+            distanceState = newState;
+            thisEvent.EventType = DISTANCE;
+            thisEvent.EventParam = distanceState;
+            returnVal = TRUE;
+            PostTemplateService(thisEvent);
+        }
+        DELAY(8000);
+    }
 }

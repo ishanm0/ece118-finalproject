@@ -33,7 +33,11 @@
 #define TAPE_FL BIT_3
 
 #define DRIVE_SPEED 1000
-#define TURN_SPEED 500
+#define TURN_SPEED 800
+#define RIGHT_TURN_MS 700
+
+#define LEFT_FACTOR 1
+#define RIGHT_FACTOR 0.985
 
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
@@ -148,7 +152,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
     switch (CurrentState)
     {
     case InitPState:                        // If current state is initial Pseudo State
-        if (ThisEvent.EventType == ES_INIT) // only respond to ES_Init
+        if (ThisEvent.EventType == BATTERY_CONNECTED) // only respond to ES_Init
         {
             // this is where you would put any actions associated with the
             // transition from the initial pseudo-state into the actual
@@ -204,9 +208,12 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(-TURN_SPEED);
             right(TURN_SPEED);
+            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
             break;
-        case TAPE:
-            if (ThisEvent.EventParam & TAPE_BR)
+        // case TAPE:
+        case ES_TIMEOUT:
+            // if (ThisEvent.EventParam & TAPE_BR)
+            if (ThisEvent.EventParam == NAV_ROTATE_TIMER)
             {
                 nextState = DriveForward;
                 makeTransition = TRUE;
@@ -220,9 +227,12 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(TURN_SPEED);
             right(-TURN_SPEED);
+            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
             break;
-        case TAPE:
-            if (ThisEvent.EventParam & TAPE_BL)
+        // case TAPE:
+        case ES_TIMEOUT:
+            // if (ThisEvent.EventParam & TAPE_BR)
+            if (ThisEvent.EventParam == NAV_ROTATE_TIMER)
             {
                 nextState = DriveForward;
                 makeTransition = TRUE;
@@ -276,7 +286,7 @@ void left(int speed)
         IO_PortsClearPortBits(PORTY, PIN6);
     }
 
-    PWM_SetDutyCycle(PWM_PORTX11, speed);
+    PWM_SetDutyCycle(PWM_PORTX11, speed * LEFT_FACTOR);
 }
 
 void right(int speed)
@@ -293,5 +303,5 @@ void right(int speed)
         IO_PortsClearPortBits(PORTY, PIN8);
     }
 
-    PWM_SetDutyCycle(PWM_PORTY10, speed);
+    PWM_SetDutyCycle(PWM_PORTY10, speed * RIGHT_FACTOR);
 }

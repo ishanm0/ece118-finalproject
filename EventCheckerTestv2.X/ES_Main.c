@@ -7,6 +7,7 @@
 #include "IO_Ports.h"
 #include "RC_Servo.h"
 #include "pwm.h"
+#include "AD.h"
 
 void main(void)
 {
@@ -38,6 +39,9 @@ void main(void)
 
     IO_PortsSetPortOutputs(PORTY, PIN12); // intake motor on/off pin
     IO_PortsClearPortBits(PORTY, PIN12);  // set intake motor off
+
+    AD_Init(); // initialize the AD
+    AD_AddPins(AD_PORTV4);
 
     // now initialize the Events and Services Framework and start it running
     ErrorType = ES_Initialize();

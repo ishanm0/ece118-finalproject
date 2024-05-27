@@ -48,6 +48,7 @@ typedef enum {
     BATTERY_DISCONNECTED,
     BUMPER,
     TAPE,
+    DISTANCE,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
@@ -66,6 +67,7 @@ static const char *EventNames[] = {
 	"BATTERY_DISCONNECTED",
 	"BUMPER",
 	"TAPE",
+	"DISTANCE",
 	"NUMBEROFEVENTS",
 };
 
@@ -78,7 +80,7 @@ static const char *EventNames[] = {
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST  TemplateCheckBattery, CheckBumpers, CheckTapeSensors
+#define EVENT_CHECK_LIST  TemplateCheckBattery, CheckBumpers, CheckTapeSensors, CheckDistanceSensors
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the

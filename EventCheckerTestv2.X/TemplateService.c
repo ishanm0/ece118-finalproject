@@ -152,93 +152,93 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
         // This section is used to reset service for some reason
         break;
 
-    case BUMPER:
-        printf("\r\nBumper: %04x", ThisEvent.EventParam);
-        if ((ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB)) && !leftDriving)
-        {
-            // left wheel forward
-            printf("\r\nLeft wheel forward");
-            leftDriving = 1;
-            left(1000);
-        }
-        else if (((ThisEvent.EventParam >> 8) & (BUMPER_FLR | BUMPER_FLB)) && (leftDriving == 1))
-        {
-            // left wheel stop
-            printf("\r\nLeft wheel stop");
-            leftDriving = 0;
-            left(0);
-        }
+    // case BUMPER:
+    //     printf("\r\nBumper: %04x", ThisEvent.EventParam);
+    //     if ((ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB)) && !leftDriving)
+    //     {
+    //         // left wheel forward
+    //         printf("\r\nLeft wheel forward");
+    //         leftDriving = 1;
+    //         left(1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_FLR | BUMPER_FLB)) && (leftDriving == 1))
+    //     {
+    //         // left wheel stop
+    //         printf("\r\nLeft wheel stop");
+    //         leftDriving = 0;
+    //         left(0);
+    //     }
 
-        if ((ThisEvent.EventParam & (BUMPER_BLR | BUMPER_BLB)) && !leftDriving)
-        {
-            // left wheel backward
-            printf("\r\nLeft wheel backward");
-            leftDriving = -1;
-            left(-1000);
-        }
-        else if (((ThisEvent.EventParam >> 8) & (BUMPER_BLR | BUMPER_BLB)) && (leftDriving == -1))
-        {
-            // left wheel stop
-            printf("\r\nLeft wheel stop");
-            leftDriving = 0;
-            left(0);
-        }
+    //     if ((ThisEvent.EventParam & (BUMPER_BLR | BUMPER_BLB)) && !leftDriving)
+    //     {
+    //         // left wheel backward
+    //         printf("\r\nLeft wheel backward");
+    //         leftDriving = -1;
+    //         left(-1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_BLR | BUMPER_BLB)) && (leftDriving == -1))
+    //     {
+    //         // left wheel stop
+    //         printf("\r\nLeft wheel stop");
+    //         leftDriving = 0;
+    //         left(0);
+    //     }
 
-        if ((ThisEvent.EventParam & (BUMPER_FRR | BUMPER_FRB)) && !rightDriving)
-        {
-            // right wheel forward
-            printf("\r\nRight wheel forward");
-            rightDriving = 1;
-            right(1000);
-        }
-        else if (((ThisEvent.EventParam >> 8) & (BUMPER_FRR | BUMPER_FRB)) && (rightDriving == 1))
-        {
-            // right wheel stop
-            printf("\r\nRight wheel stop");
-            rightDriving = 0;
-            right(0);
-        }
+    //     if ((ThisEvent.EventParam & (BUMPER_FRR | BUMPER_FRB)) && !rightDriving)
+    //     {
+    //         // right wheel forward
+    //         printf("\r\nRight wheel forward");
+    //         rightDriving = 1;
+    //         right(1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_FRR | BUMPER_FRB)) && (rightDriving == 1))
+    //     {
+    //         // right wheel stop
+    //         printf("\r\nRight wheel stop");
+    //         rightDriving = 0;
+    //         right(0);
+    //     }
 
-        if ((ThisEvent.EventParam & (BUMPER_BRR | BUMPER_BRB)) && !rightDriving)
-        {
-            // right wheel backward
-            printf("\r\nRight wheel backward");
-            rightDriving = -1;
-            right(-1000);
-        }
-        else if (((ThisEvent.EventParam >> 8) & (BUMPER_BRR | BUMPER_BRB)) && (rightDriving == -1))
-        {
-            // right wheel stop
-            printf("\r\nRight wheel stop");
-            rightDriving = 0;
-            right(0);
-        }
-        break;
+    //     if ((ThisEvent.EventParam & (BUMPER_BRR | BUMPER_BRB)) && !rightDriving)
+    //     {
+    //         // right wheel backward
+    //         printf("\r\nRight wheel backward");
+    //         rightDriving = -1;
+    //         right(-1000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 8) & (BUMPER_BRR | BUMPER_BRB)) && (rightDriving == -1))
+    //     {
+    //         // right wheel stop
+    //         printf("\r\nRight wheel stop");
+    //         rightDriving = 0;
+    //         right(0);
+    //     }
+    //     break;
 
-    case TAPE:
-        printf("\r\nTape: %x", ThisEvent.EventParam);
-        if ((ThisEvent.EventParam & (TAPE_FL | TAPE_FR)))
-        {
-            // intake motor on
-            IO_PortsSetPortBits(PORTY, PIN12);
-        }
-        else if (((ThisEvent.EventParam >> 4) & (TAPE_FL | TAPE_FR)))
-        {
-            // intake motor off
-            IO_PortsClearPortBits(PORTY, PIN12);
-        }
+    // case TAPE:
+    //     printf("\r\nTape: %x", ThisEvent.EventParam);
+    //     if ((ThisEvent.EventParam & (TAPE_FL | TAPE_FR)))
+    //     {
+    //         // intake motor on
+    //         IO_PortsSetPortBits(PORTY, PIN12);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 4) & (TAPE_FL | TAPE_FR)))
+    //     {
+    //         // intake motor off
+    //         IO_PortsClearPortBits(PORTY, PIN12);
+    //     }
 
-        if ((ThisEvent.EventParam & (TAPE_BL | TAPE_BR)))
-        {
-            // door open
-            RC_SetPulseTime(RC_PORTV03, 2000);
-        }
-        else if (((ThisEvent.EventParam >> 4) & (TAPE_BL | TAPE_BR)))
-        {
-            // door close
-            RC_SetPulseTime(RC_PORTV03, 1000);
-        }
-        break;
+    //     if ((ThisEvent.EventParam & (TAPE_BL | TAPE_BR)))
+    //     {
+    //         // door open
+    //         RC_SetPulseTime(RC_PORTV03, 2000);
+    //     }
+    //     else if (((ThisEvent.EventParam >> 4) & (TAPE_BL | TAPE_BR)))
+    //     {
+    //         // door close
+    //         RC_SetPulseTime(RC_PORTV03, 1000);
+    //     }
+    //     break;
 
     case ES_TIMEOUT:
         if (batVoltage > BATTERY_DISCONNECT_THRESHOLD)
