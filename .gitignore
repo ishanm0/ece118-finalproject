@@ -142,4 +142,9 @@ C:
 /Sensors Reading.X/dist/
 /EventCheckerTestv2.X/dist/
 /EventCheckerTestv2.X/build/
+/ECE118 FinalProject.X/dist/
+/ECE118 FinalProject.X/build/
 /NavigationSMTest.X/dist/
+/NavigationSMTest.X/build/
+
+.generated_files/

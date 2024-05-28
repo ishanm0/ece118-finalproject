@@ -18,14 +18,15 @@
  ******************************************************************************/
 // Include any defines you need to do
 
-#define BUMPER_FLR BIT_0
-#define BUMPER_FLB BIT_1
-#define BUMPER_FRR BIT_2
-#define BUMPER_FRB BIT_3
-#define BUMPER_BLR BIT_4
-#define BUMPER_BLB BIT_5
-#define BUMPER_BRR BIT_6
-#define BUMPER_BRB BIT_7
+#define BUMPER_BFL BIT_0 //z-3
+#define BUMPER_BFR BIT_1 //z-4
+#define BUMPER_BBL BIT_2 //z-5
+#define BUMPER_BBR BIT_3 //z-6
+
+#define BUMPER_TFL BIT_4 //z-7
+#define BUMPER_TFR BIT_5 //z-8
+#define BUMPER_TBL BIT_6 //z-9 
+#define BUMPER_TBR BIT_7 //z-11
 
 #define TAPE_FR BIT_0
 #define TAPE_BL BIT_1
@@ -192,7 +193,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
             }
             break;
         case BUMPER:
-            if (ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB | BUMPER_FRR | BUMPER_FRB))
+            if (ThisEvent.EventParam & (BUMPER_BFL | BUMPER_BFR))
             {
                 nextState = Stop;
                 makeTransition = TRUE;
