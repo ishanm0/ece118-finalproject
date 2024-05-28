@@ -74,6 +74,8 @@ static const char *StateNames[] = {
 
 void left(int speed);
 void right(int speed);
+void intake(uint8_t on);
+void door(uint8_t open);
 
 /*******************************************************************************
  * PRIVATE MODULE VARIABLES                                                            *
@@ -179,6 +181,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
             printf("\r\ndriving!");
             left(DRIVE_SPEED);
             right(DRIVE_SPEED);
+            intake(TRUE);
             break;
         case TAPE:
             if (ThisEvent.EventParam & TAPE_FL)
@@ -247,6 +250,8 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(0);
             right(0);
+            intake(FALSE);
+            door(TRUE);
             break;
         case ES_NO_EVENT:
         default:
@@ -305,4 +310,20 @@ void right(int speed)
     }
 
     PWM_SetDutyCycle(PWM_PORTY10, speed * RIGHT_FACTOR);
+}
+
+void intake(uint8_t on) {
+    if (on == TRUE) {
+        IO_PortsSetPortBits(PORTY, PIN12);
+    } else {
+        IO_PortsClearPortBits(PORTY, PIN12);
+    }
+}
+
+void door(uint8_t open) {
+    if (open == TRUE) {
+        RC_SetPulseTime(RC_PORTV03, 1000);
+    } else {
+        RC_SetPulseTime(RC_PORTV03, 2000);
+    }
 }
