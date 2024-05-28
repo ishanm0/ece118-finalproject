@@ -25,7 +25,7 @@ int main(void) {
     BOARD_Init();
     RC_Init();
 
-//        AD_Init();
+    //        AD_Init();
     //    PWM_Init();
     IO_PortsSetPortInputs(PORTV, PIN4);
     //    IO_PortsSetPortOutputs(PORTV, PIN5 | PIN6 | PIN3);
@@ -33,18 +33,21 @@ int main(void) {
     IO_PortsSetPortBits(PORTV, PIN5);
     //    PWM_AddPins(PWM_PORTY10);
 
-//        AD_AddPins(AD_PORTV3);
-//        AD_AddPins(AD_PORTV4);
+    IO_PortsSetPortOutputs(PORTY, PIN3);
+    IO_PortsSetPortBits(PORTY, PIN3);
+
+    //        AD_AddPins(AD_PORTV3);
+    //        AD_AddPins(AD_PORTV4);
 
     RC_AddPins(RC_PORTV03);
 
     while (1) {
-//                if (AD_IsNewDataReady() == TRUE) {
-//                    unsigned int adc_Tape = AD_ReadADPin(AD_PORTV3);
+        //                if (AD_IsNewDataReady() == TRUE) {
+        //                    unsigned int adc_Tape = AD_ReadADPin(AD_PORTV3);
         //            unsigned int adc_TrackWire = AD_ReadADPin(AD_PORTV4);
-//                    printf("Tape Sensor Reading: %d\r\n", adc_Tape);
+        //                    printf("Tape Sensor Reading: %d\r\n", adc_Tape);
         //            printf("Track Wire Reading: %d\r\n", adc_TrackWire);
-//            }
+        //            }
 
         //        if (IO_PortsReadPort(PORTV) & PIN4) {
         //            printf("Motor Speed 50%\r\n");

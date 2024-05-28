@@ -43,10 +43,10 @@
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
 
-typedef enum
-{
+typedef enum {
     InitPState,
     DriveForward,
+    FF,
     RotateLeft,
     RotateRight,
     RetreatFromWall,
@@ -55,13 +55,14 @@ typedef enum
 } TemplateHSMState_t;
 
 static const char *StateNames[] = {
-    "InitPState",
-    "DriveForward",
-    "RotateLeft",
-    "RotateRight",
-    "RetreatFromWall",
-    "TurnToDoor",
-    "Stop",
+	"InitPState",
+	"DriveForward",
+	"FF",
+	"RotateLeft",
+	"RotateRight",
+	"RetreatFromWall",
+	"TurnToDoor",
+	"Stop",
 };
 
 /*******************************************************************************
@@ -97,18 +98,14 @@ static uint8_t MyPriority;
  *        to rename this to something appropriate.
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-uint8_t InitNavigationTestHSM(uint8_t Priority)
-{
+uint8_t InitNavigationTestHSM(uint8_t Priority) {
     MyPriority = Priority;
     // put us into the Initial PseudoState
     CurrentState = InitPState;
     // post the initial transition event
-    if (ES_PostToService(MyPriority, INIT_EVENT) == TRUE)
-    {
+    if (ES_PostToService(MyPriority, INIT_EVENT) == TRUE) {
         return TRUE;
-    }
-    else
-    {
+    } else {
         return FALSE;
     }
 }
@@ -122,8 +119,7 @@ uint8_t InitNavigationTestHSM(uint8_t Priority)
  *        be posted to. Remember to rename to something appropriate.
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-uint8_t PostNavigationTestHSM(ES_Event ThisEvent)
-{
+uint8_t PostNavigationTestHSM(ES_Event ThisEvent) {
     return ES_PostToService(MyPriority, ThisEvent);
 }
 
@@ -142,122 +138,181 @@ uint8_t PostNavigationTestHSM(ES_Event ThisEvent)
  *       not consumed as these need to pass pack to the higher level state machine.
  * @author J. Edward Carryer, 2011.10.23 19:25
  * @author Gabriel H Elkaim, 2011.10.23 19:25 */
-ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
-{
+ES_Event RunNavigationTestHSM(ES_Event ThisEvent) {
     uint8_t makeTransition = FALSE; // use to flag transition
-    TemplateHSMState_t nextState;   // <- change type to correct enum
+    TemplateHSMState_t nextState; // <- change type to correct enum
 
     ES_Tattle(); // trace call stack
 
-    switch (CurrentState)
-    {
-    case InitPState:                        // If current state is initial Pseudo State
-        if (ThisEvent.EventType == BATTERY_CONNECTED) // only respond to ES_Init
-        {
-            // this is where you would put any actions associated with the
-            // transition from the initial pseudo-state into the actual
-            // initial state
-            // Initialize all sub-state machines
-            // InitTemplateSubHSM();
-            // now put the machine into the actual initial state
-            nextState = DriveForward;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-            ;
-        }
-        break;
+    switch (CurrentState) {
+        case InitPState: // If current state is initial Pseudo State
+            if (ThisEvent.EventType == BATTERY_CONNECTED) // only respond to ES_Init
+            {
+                // this is where you would put any actions associated with the
+                // transition from the initial pseudo-state into the actual
+                // initial state
+                // Initialize all sub-state machines
+                // InitTemplateSubHSM();
+                // now put the machine into the actual initial state
+                nextState = DriveForward;
+                makeTransition = TRUE;
+                ThisEvent.EventType = ES_NO_EVENT;
+            }
+            break;
+        case DriveForward: // in the first state, replace this with correct names
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            // ThisEvent = RunTemplateSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    printf("\r\ndriving!");
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED);
+                    break;
+                case TAPE:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = RotateRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & TAPE_FR) {
+                        nextState = RotateLeft;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case BUMPER:
+                    if (ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB | BUMPER_FRR | BUMPER_FRB)) {
+                        nextState = TurnToDoor;
+                        makeTransition = TRUE;
+                    }
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case RotateLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-TURN_SPEED);
+                    right(TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
+                    break;
+                case TAPE:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = RotateRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & TAPE_FR) {
+                        nextState = RotateLeft;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case BUMPER:
+                    if (ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB | BUMPER_FRR | BUMPER_FRB)) {
+                        nextState = RetreatFromWall;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_TIMEOUT:
+                    // if (ThisEvent.EventParam & TAPE_BR)
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = DriveForward;
+                        makeTransition = TRUE;
+                    }
+                    break;
+            }
+            break;
+        case RotateRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(TURN_SPEED);
+                    right(-TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
+                    break;
+                case TAPE:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = RotateRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & TAPE_FR) {
+                        nextState = RotateLeft;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case BUMPER:
+                    if (ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB | BUMPER_FRR | BUMPER_FRB)) {
+                        nextState = RetreatFromWall;
+                        makeTransition = TRUE;
+                    }
+                case ES_TIMEOUT:
+                    // if (ThisEvent.EventParam & TAPE_BR)
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = DriveForward;
+                        makeTransition = TRUE;
+                    }
+                    break;
+            }
+            break;
+        case TurnToDoor:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(TURN_SPEED);
+                    right(-TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED);
+                    break;
+                case TAPE:
+                    if (ThisEvent.EventParam & (TAPE_FL & TAPE_FR)) {
+                        nextState = RotateLeft;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case RetreatFromWall:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-950);
+                    right(-900);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
+                    left(-950);
+                    right(-950);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 500);
+                    left(0);
+                    right(-900);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1400);
+                    left(-950);
+                    right(-950);
+                    break;
+                case BUMPER:
+                    if (ThisEvent.EventParam & (BUMPER_BLR | BUMPER_BLB | BUMPER_BRR | BUMPER_BRB)) {
+                        nextState = Stop;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
 
-    case DriveForward: // in the first state, replace this with correct names
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        // ThisEvent = RunTemplateSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            printf("\r\ndriving!");
-            left(DRIVE_SPEED);
-            right(DRIVE_SPEED);
-            break;
-        case TAPE:
-            if (ThisEvent.EventParam & TAPE_FL)
-            {
-                nextState = RotateRight;
-                makeTransition = TRUE;
             }
-            else if (ThisEvent.EventParam & TAPE_FR)
-            {
-                nextState = RotateLeft;
-                makeTransition = TRUE;
+        case Stop:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(0);
+                    right(0);
+                    RC_SetPulseTime(RC_PORTV03, 1000);
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
             }
             break;
-        case BUMPER:
-            if (ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB | BUMPER_FRR | BUMPER_FRB))
-            {
-                nextState = Stop;
-                makeTransition = TRUE;
-            }
-        case ES_NO_EVENT:
-        default:
+        default: // all unhandled states fall into here
             break;
-        }
-        break;
-    case RotateLeft:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(-TURN_SPEED);
-            right(TURN_SPEED);
-            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
-            break;
-        // case TAPE:
-        case ES_TIMEOUT:
-            // if (ThisEvent.EventParam & TAPE_BR)
-            if (ThisEvent.EventParam == NAV_ROTATE_TIMER)
-            {
-                nextState = DriveForward;
-                makeTransition = TRUE;
-            }
-            break;
-        }
-        break;
-    case RotateRight:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(TURN_SPEED);
-            right(-TURN_SPEED);
-            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
-            break;
-        // case TAPE:
-        case ES_TIMEOUT:
-            // if (ThisEvent.EventParam & TAPE_BR)
-            if (ThisEvent.EventParam == NAV_ROTATE_TIMER)
-            {
-                nextState = DriveForward;
-                makeTransition = TRUE;
-            }
-            break;
-        }
-        break;
-    case Stop:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(0);
-            right(0);
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    default: // all unhandled states fall into here
-        break;
     } // end switch on Current State
 
-    if (makeTransition == TRUE)
-    { // making a state transition, send EXIT and ENTRY
+    if (makeTransition == TRUE) { // making a state transition, send EXIT and ENTRY
         // recursively call the current state with an exit event
         RunNavigationTestHSM(EXIT_EVENT); // <- rename to your own Run function
         CurrentState = nextState;
@@ -272,16 +327,12 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
  * PRIVATE FUNCTIONS                                                           *
  ******************************************************************************/
 
-void left(int speed)
-{
-    if (speed < 0)
-    {
+void left(int speed) {
+    if (speed < 0) {
         speed = -speed;
         IO_PortsClearPortBits(PORTY, PIN4);
         IO_PortsSetPortBits(PORTY, PIN6);
-    }
-    else
-    {
+    } else {
         IO_PortsSetPortBits(PORTY, PIN4);
         IO_PortsClearPortBits(PORTY, PIN6);
     }
@@ -289,16 +340,12 @@ void left(int speed)
     PWM_SetDutyCycle(PWM_PORTX11, speed * LEFT_FACTOR);
 }
 
-void right(int speed)
-{
-    if (speed < 0)
-    {
+void right(int speed) {
+    if (speed < 0) {
         speed = -speed;
         IO_PortsClearPortBits(PORTY, PIN7);
         IO_PortsSetPortBits(PORTY, PIN8);
-    }
-    else
-    {
+    } else {
         IO_PortsSetPortBits(PORTY, PIN7);
         IO_PortsClearPortBits(PORTY, PIN8);
     }
