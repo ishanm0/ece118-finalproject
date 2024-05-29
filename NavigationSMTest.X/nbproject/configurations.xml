@@ -28,6 +28,7 @@
       <itemPath>ES_Configure.h</itemPath>
       <itemPath>EventChecker.h</itemPath>
       <itemPath>NavigationTestHSM.h</itemPath>
+      <itemPath>PETERHSM.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -55,6 +56,7 @@
       <itemPath>EventChecker.c</itemPath>
       <itemPath>ES_Main.c</itemPath>
       <itemPath>NavigationTestHSM.c</itemPath>
+      <itemPath>PETERHSM.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -64,6 +66,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>../ECE118</Elem>
+    <Elem>.</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -75,8 +78,8 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>noID</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>4.35</languageToolchainVersion>
-        <platform>4</platform>
+        <languageToolchainVersion>4.10</languageToolchainVersion>
+        <platform>3</platform>
       </toolsSet>
       <packs>
         <pack name="PIC32MX_DFP" vendor="Microchip" version="1.5.259"/>
@@ -101,7 +104,7 @@
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
         <makeUseCleanTarget>false</makeUseCleanTarget>
-        <makeCustomizationPreStep>python3 ../ECE118/scripts/Enum_To_String.py</makeCustomizationPreStep>
+        <makeCustomizationPreStep>python ../ECE118/scripts/Enum_To_String.py</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
@@ -116,7 +119,8 @@
         <property key="enable-symbols" value="true"/>
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
-        <property key="extra-include-directories" value=".;../ECE118/include"/>
+        <property key="extra-include-directories"
+                  value=".;../ECE118/include;..\..\..\..\..\ECE118\include"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="false"/>
@@ -244,6 +248,24 @@
         <property key="stack-smashing" value=""/>
         <property key="wpo-lto" value="false"/>
       </C32Global>
+      <item path="NavigationTestHSM.c" ex="true" overriding="false">
+      </item>
+      <item path="PETERHSM.c" ex="false" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
+      </item>
       <PICkit3PlatformTool>
         <property key="ADC 1" value="true"/>
         <property key="AutoSelectMemRanges" value="auto"/>
