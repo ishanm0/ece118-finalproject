@@ -48,24 +48,20 @@
 typedef enum {
     InitPState,
     FF,
-    DriveForward,
-    RotateLeft,
-    RotateRight,
-            RotateLine,
-    RetreatFromWall,
-    TurnToDoor,
+    pivit,
+    forward,
+    //    DriveForward,
+    //    RotateLeft,
+    //    RotateRight,
+    //    RotateLine,
     Stop,
 } TemplateHSMState_t;
 
 static const char *StateNames[] = {
 	"InitPState",
 	"FF",
-	"DriveForward",
-	"RotateLeft",
-	"RotateRight",
-	"RotateLine",
-	"RetreatFromWall",
-	"TurnToDoor",
+	"pivit",
+	"forward",
 	"Stop",
 };
 
@@ -161,95 +157,130 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                 // Initialize all sub-state machines
                 // InitTemplateSubHSM();
                 // now put the machine into the actual initial state
-                nextState = DriveForward;
+                nextState = pivit;
                 makeTransition = TRUE;
                 ThisEvent.EventType = ES_NO_EVENT;
                 ;
             }
             break;
 
-        case DriveForward: // in the first state, replace this with correct names
-            // run sub-state machine for this state
-            // NOTE: the SubState Machine runs and responds to events before anything in the this
-            // state machine does
-            // ThisEvent = RunTemplateSubHSM(ThisEvent);
+            //        case DriveForward: // in the first state, replace this with correct names
+            //            // run sub-state machine for this state
+            //            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            //            // state machine does
+            //            // ThisEvent = RunTemplateSubHSM(ThisEvent);
+            //            switch (ThisEvent.EventType) {
+            //                case ES_ENTRY:
+            //                    printf("\r\ndriving!");
+            //                    left(DRIVE_SPEED);
+            //                    right(DRIVE_SPEED);
+            //                    //intake(TRUE);
+            //                    break;
+            //                case TAPE:
+            //
+            //                    nextState = FF;
+            //                    makeTransition = TRUE;
+            //                    break;
+            //
+            //                case ES_NO_EVENT:
+            //                default:
+            //                    break;
+            //            }
+            //            break;
+            //        case FF: // in the first state, replace this with correct names
+            //            // run sub-state machine for this state
+            //            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            //            // state machine does
+            //            // ThisEvent = RunTemplateSubHSM(ThisEvent);
+            //            switch (ThisEvent.EventType) {
+            //                case ES_ENTRY:
+            //                    left(DRIVE_SPEED);
+            //                    right(DRIVE_SPEED);
+            //                    break;
+            //                case TAPE:
+            //                    if (ThisEvent.EventParam & TAPE_FL) {
+            //                        nextState = RotateRight;
+            //                        makeTransition = TRUE;
+            //                    } else if (ThisEvent.EventParam & TAPE_FR) {
+            //                        nextState = RotateLeft;
+            //                        makeTransition = TRUE;
+            //                    }
+            //                    break;
+            //                case ES_NO_EVENT:
+            //                default:
+            //                    break;
+            //            }
+            //            break;
+            //        case RotateLeft:
+            //            switch (ThisEvent.EventType) {
+            //                case ES_ENTRY:
+            //                    left(TURN_SPEED);
+            //                    right(0);
+            //                    break;
+            //                case TAPE:
+            //                    // if (ThisEvent.EventParam & TAPE_BR)
+            //                    if (ThisEvent.EventParam & TAPE_FL) {
+            //                        nextState = Stop;
+            //                        makeTransition = TRUE;
+            //                    }
+            //                    break;
+            //            }
+            //            break;
+            //        case RotateRight:
+            //            switch (ThisEvent.EventType) {
+            //                case ES_ENTRY:
+            //                    left(0);
+            //                    right(TURN_SPEED);
+            //                    break;
+            //                    // case TAPE:
+            //                case TAPE:
+            //                    // if (ThisEvent.EventParam & TAPE_BR)
+            //                    if (ThisEvent.EventParam & TAPE_FR ) {
+            //                        nextState = Stop;
+            //                        makeTransition = TRUE;
+            //                    }
+            //                    break;
+            //            }
+            //            break;
+        case pivit: // move to have the front sensor on the line and the back not on the line assume both are on the line
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    printf("\r\ndriving!");
-                    left(DRIVE_SPEED);
-                    right(DRIVE_SPEED);
-                    intake(TRUE);
-                    break;
-                case TAPE:
-
-                    nextState = FF;
-                    makeTransition = TRUE;
-                    break;
-
-                case ES_NO_EVENT:
-                default:
-                    break;
-            }
-            break;
-        case FF: // in the first state, replace this with correct names
-            // run sub-state machine for this state
-            // NOTE: the SubState Machine runs and responds to events before anything in the this
-            // state machine does
-            // ThisEvent = RunTemplateSubHSM(ThisEvent);
-            switch (ThisEvent.EventType) {
-                case ES_ENTRY:
-                    printf("\r\ndriving!");
-                    left(DRIVE_SPEED);
-                    right(DRIVE_SPEED);
-                    intake(TRUE);
-                    break;
-                case TAPE:
-                    if (ThisEvent.EventParam & TAPE_FL) {
-                        nextState = RotateRight;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & TAPE_FR) {
-                        nextState = RotateLeft;
-                        makeTransition = TRUE;
-                    }
-                    break;
-                case ES_NO_EVENT:
-                default:
-                    break;
-            }
-            break;
-        case RotateLeft:
-            switch (ThisEvent.EventType) {
-                case ES_ENTRY:
-                    left(TURN_SPEED);
-                    right(-400);
-          
-                    break;
-                    // case TAPE:
-                case TAPE:
-                    // if (ThisEvent.EventParam & TAPE_BR)
-                    if (ThisEvent.EventParam & TAPE_FL) {
-                        nextState = Stop;
-                        makeTransition = TRUE;
-                    }
-                    break;
-            }
-            break;
-        case RotateRight:
-            switch (ThisEvent.EventType) {
-                case ES_ENTRY:
-                    left(TURN_SPEED);
+                    left(600);
                     right(0);
+                    //intake(TRUE);
                     break;
-                    // case TAPE:
                 case TAPE:
-                    // if (ThisEvent.EventParam & TAPE_BR)
-                    if (ThisEvent.EventParam & TAPE_FR ) {
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = forward;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case forward: // in the first state, replace this with correct names
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            // ThisEvent = RunTemplateSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(800);
+                    right(1000);
+                    break;
+                case TAPE:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = pivit;
+                        makeTransition = TRUE;
+                    }if (ThisEvent.EventParam & TAPE_FR) {
                         nextState = Stop;
                         makeTransition = TRUE;
                     }
-                    if (ThisEvent.EventParam & TAPE_FR ) {
-                        right(-1000);
-                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
                     break;
             }
             break;
@@ -258,16 +289,13 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                 case ES_ENTRY:
                     left(0);
                     right(0);
-                    intake(FALSE);
+                    //intake(FALSE);
                     door(TRUE);
                     break;
                 case ES_NO_EVENT:
                 default:
                     break;
             }
-            break;
-            
-        case RotateLine:
             break;
         default: // all unhandled states fall into here
             break;
@@ -291,11 +319,11 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
 void left(int speed) {
     if (speed < 0) {
         speed = -speed;
-        IO_PortsClearPortBits(PORTY, PIN4);
-        IO_PortsSetPortBits(PORTY, PIN6);
-    } else {
-        IO_PortsSetPortBits(PORTY, PIN4);
         IO_PortsClearPortBits(PORTY, PIN6);
+        IO_PortsSetPortBits(PORTY, PIN4);
+    } else {
+        IO_PortsSetPortBits(PORTY, PIN6);
+        IO_PortsClearPortBits(PORTY, PIN4);
     }
 
     PWM_SetDutyCycle(PWM_PORTX11, speed * LEFT_FACTOR);
