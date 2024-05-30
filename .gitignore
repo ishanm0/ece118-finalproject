@@ -143,3 +143,4 @@ C:
 /EventCheckerTestv2.X/dist/
 /EventCheckerTestv2.X/build/
 /NavigationSMTest.X/dist/
+.generated_files/
