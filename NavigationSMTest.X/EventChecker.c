@@ -129,14 +129,22 @@ uint8_t CheckBumpers(void)
     if (newBumperState != bumperState)
     {
         uint16_t xor = newBumperState ^ bumperState;
-        thisEvent.EventParam = (xor&newBumperState) | ((xor&bumperState) << 8);
-        // any high bit in the right 8 bits represents a bumper that was pressed
-        // any high bit in the left 8 bits represents a bumper that was released
-        bumperState = newBumperState;
-        thisEvent.EventType = BUMPER;
-        returnVal = TRUE;
-        PostNavigationTestHSM(thisEvent);
-        // PostPETERHSM(thisEvent);
+        if (xor&bumperState)
+        {
+            // any high bit represents a bumper that was released
+            thisEvent.EventType = BUMPER_OFF;
+            thisEvent.EventParam = xor&bumperState;
+            returnVal = TRUE;
+            PostNavigationTestHSM(thisEvent);
+        }
+        if (xor&newBumperState)
+        {
+            // any high bit represents a bumper that was pressed
+            thisEvent.EventType = BUMPER_ON;
+            thisEvent.EventParam = xor&newBumperState;
+            returnVal = TRUE;
+            PostNavigationTestHSM(thisEvent);
+        }
     }
     return returnVal;
 }
@@ -151,18 +159,25 @@ uint8_t CheckTapeSensors(void)
     newTapeState |= (IO_PortsReadPort(PORTZ) & PIN12) >> (12 - 3);
     newTapeState &= 0xf; // mask off the unused bits - only 4 bits are used
 
-    // printf("\r\n%x", newTapeState);
     if (newTapeState != tapeState)
     {
         uint16_t xor = newTapeState ^ tapeState;
-        thisEvent.EventParam = (xor&newTapeState) | ((xor&tapeState) << 4);
-        // any high bit in the right 4 bits represents a tape sensor that is now on tape
-        // any high bit in the left 4 bits represents a tape sensor that is now off tape
-        tapeState = newTapeState;
-        thisEvent.EventType = TAPE;
-        returnVal = TRUE;
-        PostNavigationTestHSM(thisEvent);
-        // PostPETERHSM(thisEvent);
+        if (xor&tapeState)
+        {
+            // any high bit represents a tape sensor that is now off tape
+            thisEvent.EventParam = xor&tapeState;
+            thisEvent.EventType = TAPE_OFF;
+            returnVal = TRUE;
+            PostNavigationTestHSM(thisEvent);
+        }
+        if (xor&newTapeState)
+        {
+            // any high bit represents a tape sensor that is now on tape
+            thisEvent.EventParam = xor&newTapeState;
+            thisEvent.EventType = TAPE_ON;
+            returnVal = TRUE;
+            PostNavigationTestHSM(thisEvent);
+        }
     }
     return returnVal;
 }
