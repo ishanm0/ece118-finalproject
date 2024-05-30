@@ -19,15 +19,15 @@
  ******************************************************************************/
 // Include any defines you need to do
 
-#define BUMPER_BFL BIT_0 //z-3
-#define BUMPER_BFR BIT_1 //z-4
-#define BUMPER_BBL BIT_2 //z-5
-#define BUMPER_BBR BIT_3 //z-6
+#define BUMPER_BLF BIT_0 // bottom left front
+#define BUMPER_BLS BIT_1 // bottom left side
+#define BUMPER_BRS BIT_2 // bottom right side
+#define BUMPER_BRF BIT_3 // bottom right front
 
-#define BUMPER_TFL BIT_4 //z-7
-#define BUMPER_TFR BIT_5 //z-8
-#define BUMPER_TBL BIT_6 //z-9 
-#define BUMPER_TBR BIT_7 //z-11
+#define BUMPER_TLF BIT_4 // top left front
+#define BUMPER_TLS BIT_5 // top left side
+#define BUMPER_TRS BIT_6 // top right side
+#define BUMPER_TRF BIT_7 // top right front
 
 #define TAPE_FR BIT_0
 #define TAPE_BL BIT_1
@@ -249,7 +249,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     right(0);
                     //intake(TRUE);
                     break;
-                case TAPE:
+                case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_FL) {
                         nextState = forward;
                         makeTransition = TRUE;
@@ -270,7 +270,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     left(800);
                     right(1000);
                     break;
-                case TAPE:
+                case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_FL) {
                         nextState = pivit;
                         makeTransition = TRUE;
