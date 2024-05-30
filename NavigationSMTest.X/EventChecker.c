@@ -146,6 +146,7 @@ uint8_t CheckBumpers(void)
             PostPETERHSM(thisEvent);
         }
     }
+    bumperState = newBumperState;
     return returnVal;
 }
 
@@ -179,5 +180,6 @@ uint8_t CheckTapeSensors(void)
             PostPETERHSM(thisEvent);
         }
     }
+    tapeState = newTapeState;
     return returnVal;
 }
