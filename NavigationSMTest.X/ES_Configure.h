@@ -110,7 +110,7 @@ static const char *EventNames[] = {
 // the timer number matches where the timer event will be routed
 
 #define GENERIC_NAMED_TIMER 0 /*make sure this is enabled above and posting to the correct state machine*/
-#define NAV_ROTATE_TIMER 0
+#define Pivit_ROTATE_TIMER 0
 
 
 /****************************************************************************/

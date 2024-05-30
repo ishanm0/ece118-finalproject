@@ -39,7 +39,7 @@
 #define RIGHT_TURN_MS 700
 
 #define LEFT_FACTOR 1
-#define RIGHT_FACTOR 0.985
+#define RIGHT_FACTOR 1
 
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
@@ -245,15 +245,16 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case pivit: // move to have the front sensor on the line and the back not on the line assume both are on the line
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(600);
+                    left(700);
                     right(0);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
                     //intake(TRUE);
                     break;
-                case TAPE:
-                    if (ThisEvent.EventParam & TAPE_FL) {
-                        nextState = forward;
-                        makeTransition = TRUE;
-                    }
+                case ES_TIMEOUT:
+
+                    nextState = forward;
+                    makeTransition = TRUE;
+
                     break;
                 case ES_NO_EVENT:
                 default:
@@ -267,14 +268,15 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
             // ThisEvent = RunTemplateSubHSM(ThisEvent);
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(800);
+                    left(900);
                     right(1000);
                     break;
                 case TAPE:
                     if (ThisEvent.EventParam & TAPE_FL) {
                         nextState = pivit;
                         makeTransition = TRUE;
-                    }if (ThisEvent.EventParam & TAPE_FR) {
+                    }
+                    if (ThisEvent.EventParam & TAPE_FR) {
                         nextState = Stop;
                         makeTransition = TRUE;
                     }
