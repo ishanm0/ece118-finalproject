@@ -20,13 +20,13 @@
 
 #define BUMPER_BFL BIT_0 // z-3
 #define BUMPER_BFR BIT_1 // z-4
-#define BUMPER_BBL BIT_2 // z-5
-#define BUMPER_BBR BIT_3 // z-6
+// #define BUMPER_BBL BIT_2 // z-5
+// #define BUMPER_BBR BIT_3 // z-6
 
 #define BUMPER_TFL BIT_4 // z-7
 #define BUMPER_TFR BIT_5 // z-8
-#define BUMPER_TBL BIT_6 // z-9
-#define BUMPER_TBR BIT_7 // z-11
+// #define BUMPER_TBL BIT_6 // z-9
+// #define BUMPER_TBR BIT_7 // z-11
 
 #define TAPE_FR BIT_0
 #define TAPE_BL BIT_1
@@ -35,7 +35,8 @@
 
 #define DRIVE_SPEED 1000
 #define TURN_SPEED 800
-#define RIGHT_TURN_MS 700
+#define RIGHT_TANK_TURN_MS 700
+#define RIGHT_ONEWHEEL_TURN_MS 800
 
 #define LEFT_FACTOR 1
 #define RIGHT_FACTOR 0.985
@@ -50,7 +51,8 @@ typedef enum
     DriveForward,
     RotateLeft,
     RotateRight,
-    TurnFrontAgainstWall,
+    TurnLeftFrontAgainstWall,
+    TurnRightFrontAgainstWall,
     TurnBackToAlignWithWall,
     DriveCurveToDoor,
     A_TankTurnRight,
@@ -70,7 +72,8 @@ static const char *StateNames[] = {
     "DriveForward",
     "RotateLeft",
     "RotateRight",
-    "TurnFrontAgainstWall",
+    "TurnLeftFrontAgainstWall",
+    "TurnRightFrontAgainstWall",
     "TurnBackToAlignWithWall",
     "DriveCurveToDoor",
     "A_TankTurnRight",
@@ -216,12 +219,12 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case BUMPER:
             if (ThisEvent.EventParam & BUMPER_BFL)
             {
-                nextState = TurnBackToAlignWithWall;
+                nextState = TurnRightFrontAgainstWall;
                 makeTransition = TRUE;
             }
             else if (ThisEvent.EventParam & BUMPER_BFR)
             {
-                nextState = TurnFrontAgainstWall;
+                nextState = TurnLeftFrontAgainstWall;
                 makeTransition = TRUE;
             }
             break;
@@ -237,7 +240,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(-TURN_SPEED);
             right(TURN_SPEED);
-            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
+            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS);
             break;
         // case TAPE:
         //     if (ThisEvent.EventParam & TAPE_FL) {
@@ -272,7 +275,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(TURN_SPEED);
             right(-TURN_SPEED);
-            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
+            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS);
             break;
         // case TAPE:
         //     if (ThisEvent.EventParam & TAPE_FL) {
@@ -286,7 +289,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case BUMPER:
             if (ThisEvent.EventParam & (BUMPER_BFL | BUMPER_BFR))
             {
-                nextState = TurnFrontAgainstWall;
+                nextState = TurnLeftFrontAgainstWall;
                 makeTransition = TRUE;
             }
         case ES_TIMEOUT:
@@ -301,16 +304,35 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
             break;
         }
         break;
-    case TurnFrontAgainstWall:
+    case TurnLeftFrontAgainstWall:
         switch (ThisEvent.EventType)
         {
         case ES_ENTRY:
             left(TURN_SPEED);
             right(0);
-            // ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
+            // ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS);
             break;
         case BUMPER:
-            if (ThisEvent.EventParam == BUMPER_BFL)
+            if (ThisEvent.EventParam & BUMPER_BFL)
+            {
+                nextState = TurnBackToAlignWithWall;
+                makeTransition = TRUE;
+            }
+            break;
+        default:
+            break;
+        }
+        break;
+    case TurnRightFrontAgainstWall:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            left(0);
+            right(TURN_SPEED);
+            // ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS);
+            break;
+        case BUMPER:
+            if (ThisEvent.EventParam & BUMPER_BFR)
             {
                 nextState = TurnBackToAlignWithWall;
                 makeTransition = TRUE;
@@ -326,29 +348,13 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(0);
             right(-TURN_SPEED);
-            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
-            // left(DRIVE_SPEED);
-            // right(DRIVE_SPEED);
+            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_ONEWHEEL_TURN_MS);
             break;
-            // case TAPE:
-            //     if (ThisEvent.EventParam & (TAPE_FL & TAPE_FR)) {
-            //         nextState = RotateLeft;
-            //         makeTransition = TRUE;
-            //     }
-            //     break;
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_ROTATE_TIMER)
             {
                 nextState = DriveCurveToDoor;
                 makeTransition = TRUE;
-            }
-            break;
-        case BUMPER:
-            if (ThisEvent.EventParam & BUMPER_BBL)
-            {
-                nextState = DriveCurveToDoor;
-                makeTransition = TRUE;
-                ES_Timer_StopTimer(NAV_ROTATE_TIMER);
             }
             break;
         case ES_NO_EVENT:
@@ -376,9 +382,6 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
                 nextState = A_TankTurnRight;
                 makeTransition = TRUE;
             }
-            // tank turn right until bl on tape
-            // left back until fl on tape
-            // both back until bumper hits etc (same as turnawayfromwall)
             break;
         default:
             break;
@@ -397,8 +400,6 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
                 nextState = A_LeftBack;
                 makeTransition = TRUE;
             }
-            // left back until fl on tape
-            // both back until bumper hits etc (same as turnawayfromwall)
             break;
         default:
             break;
@@ -417,7 +418,6 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
                 nextState = BothBack;
                 makeTransition = TRUE;
             }
-            // both back until bumper hits etc (same as turnawayfromwall)
             break;
         default:
             break;
@@ -493,7 +493,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(TURN_SPEED);
             right(-TURN_SPEED);
-            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS / 2);
+            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS / 2);
             break;
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_ROTATE_TIMER)
@@ -516,10 +516,6 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
                 nextState = B_LeftForward;
                 makeTransition = TRUE;
             }
-            // left forward until bl on tape
-            // right backward until fl off tape
-            // both backward until bumper hits
-            // whichever bumper hits first, other wheel backward until that bumper hits
             break;
         default:
             break;
@@ -567,7 +563,7 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(TURN_SPEED);
             right(-TURN_SPEED);
-            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS / 20);
+            ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS / 20);
             break;
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_ROTATE_TIMER)
@@ -580,34 +576,6 @@ ES_Event RunNavigationTestHSM(ES_Event ThisEvent)
             break;
         }
         break;
-    // case RetreatFromWall:
-    //     switch (ThisEvent.EventType)
-    //     {
-    //     case ES_ENTRY:
-    //         left(-950);
-    //         right(-900);
-    //         ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TURN_MS);
-    //         left(-950);
-    //         right(-950);
-    //         ES_Timer_InitTimer(NAV_ROTATE_TIMER, 500);
-    //         left(0);
-    //         right(-900);
-    //         ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1400);
-    //         left(-950);
-    //         right(-950);
-    //         break;
-    //     case BUMPER:
-    //         if (ThisEvent.EventParam & (BUMPER_BLR | BUMPER_BLB | BUMPER_BRR | BUMPER_BRB))
-    //         {
-    //             nextState = Stop;
-    //             makeTransition = TRUE;
-    //         }
-    //         break;
-    //     case ES_NO_EVENT:
-    //     default:
-    //         break;
-    //     }
-    //     break;
     case Stop:
         switch (ThisEvent.EventType)
         {
@@ -647,13 +615,13 @@ void left(int speed)
     if (speed < 0)
     {
         speed = -speed;
-        IO_PortsClearPortBits(PORTY, PIN4);
-        IO_PortsSetPortBits(PORTY, PIN6);
+        IO_PortsSetPortBits(PORTY, PIN4);
+        IO_PortsClearPortBits(PORTY, PIN6);
     }
     else
     {
-        IO_PortsSetPortBits(PORTY, PIN4);
-        IO_PortsClearPortBits(PORTY, PIN6);
+        IO_PortsClearPortBits(PORTY, PIN4);
+        IO_PortsSetPortBits(PORTY, PIN6);
     }
 
     PWM_SetDutyCycle(PWM_PORTX11, speed * LEFT_FACTOR);
