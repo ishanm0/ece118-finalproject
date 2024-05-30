@@ -10,7 +10,6 @@
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>../ECE118</sourceRootElem>
-                <sourceRootElem>.</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

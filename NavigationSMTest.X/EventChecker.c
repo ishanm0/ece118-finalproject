@@ -9,7 +9,7 @@
 #include "AD.h"
 
 // #include "TemplateService.h"
-#include "NavigationTestHSM.h"
+#include "ObstacleDetectSM.h"
 #include <stdio.h>
 #include "IO_Ports.h"
 
@@ -91,7 +91,7 @@ uint8_t TemplateCheckBattery(void)
         returnVal = TRUE;
         lastEvent = curEvent; // update history
 #ifndef EVENTCHECKER_TEST     // keep this as is for test harness
-        PostNavigationTestHSM(thisEvent);
+        PostObstacleDetectSM(thisEvent);
         // PostPETERHSM(thisEvent);
 #else
         SaveEvent(thisEvent);
@@ -135,7 +135,7 @@ uint8_t CheckBumpers(void)
         bumperState = newBumperState;
         thisEvent.EventType = BUMPER;
         returnVal = TRUE;
-        PostNavigationTestHSM(thisEvent);
+        PostObstacleDetectSM(thisEvent);
         // PostPETERHSM(thisEvent);
     }
     return returnVal;
@@ -161,7 +161,7 @@ uint8_t CheckTapeSensors(void)
         tapeState = newTapeState;
         thisEvent.EventType = TAPE;
         returnVal = TRUE;
-        PostNavigationTestHSM(thisEvent);
+        PostObstacleDetectSM(thisEvent);
         // PostPETERHSM(thisEvent);
     }
     return returnVal;
