@@ -38,7 +38,7 @@ void main(void)
     IO_PortsClearPortBits(PORTY, PIN4 | PIN6 | PIN7 | PIN8); // set drive motor direction pins off
 
     IO_PortsSetPortOutputs(PORTY, PIN12); // intake motor on/off pin
-    IO_PortsClearPortBits(PORTY, PIN12);  // set intake motor off
+    IO_PortsSetPortBits(PORTY, PIN12);  // set intake motor off
 
     AD_Init(); // initialize the AD
     AD_AddPins(AD_PORTV4);
