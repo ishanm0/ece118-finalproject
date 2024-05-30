@@ -46,8 +46,13 @@ typedef enum {
     /* User-defined events start here */
     BATTERY_CONNECTED,
     BATTERY_DISCONNECTED,
-    BUMPER,
-    TAPE,
+    BUMPER_ON,
+    BUMPER_OFF,
+    TAPE_ON,
+    TAPE_OFF,
+    WALL_CLOSE,
+    WALL_FAR,
+    WALL_IN_RANGE,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
@@ -64,8 +69,13 @@ static const char *EventNames[] = {
 	"ES_TIMERSTOPPED",
 	"BATTERY_CONNECTED",
 	"BATTERY_DISCONNECTED",
-	"BUMPER",
-	"TAPE",
+	"BUMPER_ON",
+    "BUMPER_OFF",
+	"TAPE_ON",
+    "TAPE_OFF",
+    "WALL_CLOSE",
+    "WALL_FAR",
+    "WALL_IN_RANGE",
 	"NUMBEROFEVENTS",
 };
 
