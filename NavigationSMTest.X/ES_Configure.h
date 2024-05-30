@@ -85,7 +85,7 @@ static const char *EventNames[] = {
 // corresponding timer expires. All 16 must be defined. If you are not using
 // a timers, then you can use TIMER_UNUSED
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostPETERHSM
+#define TIMER0_RESP_FUNC PostNavigationTestHSM
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
@@ -142,11 +142,11 @@ static const char *EventNames[] = {
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public fuction prototypes
-#define SERV_1_HEADER "PETERHSM.h"
+#define SERV_1_HEADER "NavigationTestHSM.h"
 // the name of the Init function
-#define SERV_1_INIT InitPETERHSM
+#define SERV_1_INIT InitNavigationTestHSM
 // the name of the run function
-#define SERV_1_RUN RunPETERHSM
+#define SERV_1_RUN RunNavigationTestHSM
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 3
 #endif
