@@ -154,14 +154,14 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
 
     case BUMPER:
         printf("\r\nBumper: %04x", ThisEvent.EventParam);
-        /* if ((ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB)) && !leftDriving)
+        if ((ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB)) && !leftDriving)
         {
             // left wheel forward
             printf("\r\nLeft wheel forward");
             leftDriving = 1;
             left(1000);
         }
-        else */ if (((ThisEvent.EventParam >> 8) & (BUMPER_FLR | BUMPER_FLB)) && (leftDriving == 1))
+        else if (((ThisEvent.EventParam >> 8) & (BUMPER_FLR | BUMPER_FLB)) && (leftDriving == 1))
         {
             // left wheel stop
             printf("\r\nLeft wheel stop");
@@ -217,16 +217,16 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
 
     case TAPE:
         printf("\r\nTape: %x", ThisEvent.EventParam);
-        // if ((ThisEvent.EventParam & (TAPE_FL | TAPE_FR)))
-        // {
-        //     // intake motor on
-        //     IO_PortsSetPortBits(PORTY, PIN12);
-        // }
-        // else if (((ThisEvent.EventParam >> 4) & (TAPE_FL | TAPE_FR)))
-        // {
-        //     // intake motor off
-        //     IO_PortsClearPortBits(PORTY, PIN12);
-        // }
+         if ((ThisEvent.EventParam & (TAPE_FL | TAPE_FR)))
+         {
+             // intake motor on
+             IO_PortsSetPortBits(PORTY, PIN12);
+         }
+         else if (((ThisEvent.EventParam >> 4) & (TAPE_FL | TAPE_FR)))
+         {
+             // intake motor off
+             IO_PortsClearPortBits(PORTY, PIN12);
+         }
 
         if ((ThisEvent.EventParam & (TAPE_BL | TAPE_BR)))
         {

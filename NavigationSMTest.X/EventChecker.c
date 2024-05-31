@@ -146,6 +146,7 @@ uint8_t CheckBumpers(void)
             PostObstacleDetectSM(thisEvent);
         }
     }
+    bumperState = newBumperState;
     return returnVal;
 }
 
@@ -179,5 +180,6 @@ uint8_t CheckTapeSensors(void)
             PostObstacleDetectSM(thisEvent);
         }
     }
+    tapeState = newTapeState;
     return returnVal;
 }
