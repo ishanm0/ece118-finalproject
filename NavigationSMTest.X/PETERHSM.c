@@ -47,21 +47,19 @@
 
 typedef enum {
     InitPState,
-    FF,
     pivit,
-    forward,
-    //    DriveForward,
-    //    RotateLeft,
-    //    RotateRight,
-    //    RotateLine,
+    forwardRight,
+    forwardLeft,
+    QCW,
     Stop,
 } TemplateHSMState_t;
 
 static const char *StateNames[] = {
 	"InitPState",
-	"FF",
 	"pivit",
-	"forward",
+	"forwardRight",
+	"forwardLeft",
+	"QCW",
 	"Stop",
 };
 
@@ -149,145 +147,109 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
 
     switch (CurrentState) {
         case InitPState: // If current state is initial Pseudo State
-            if (ThisEvent.EventType == BATTERY_CONNECTED) // only respond to ES_Init
+            if (ThisEvent.EventType == BATTERY_CONNECTED) 
             {
-                // this is where you would put any actions associated with the
-                // transition from the initial pseudo-state into the actual
-                // initial state
-                // Initialize all sub-state machines
-                // InitTemplateSubHSM();
-                // now put the machine into the actual initial state
                 nextState = pivit;
                 makeTransition = TRUE;
                 ThisEvent.EventType = ES_NO_EVENT;
                 ;
             }
             break;
-
-            //        case DriveForward: // in the first state, replace this with correct names
-            //            // run sub-state machine for this state
-            //            // NOTE: the SubState Machine runs and responds to events before anything in the this
-            //            // state machine does
-            //            // ThisEvent = RunTemplateSubHSM(ThisEvent);
-            //            switch (ThisEvent.EventType) {
-            //                case ES_ENTRY:
-            //                    printf("\r\ndriving!");
-            //                    left(DRIVE_SPEED);
-            //                    right(DRIVE_SPEED);
-            //                    //intake(TRUE);
-            //                    break;
-            //                case TAPE:
-            //
-            //                    nextState = FF;
-            //                    makeTransition = TRUE;
-            //                    break;
-            //
-            //                case ES_NO_EVENT:
-            //                default:
-            //                    break;
-            //            }
-            //            break;
-            //        case FF: // in the first state, replace this with correct names
-            //            // run sub-state machine for this state
-            //            // NOTE: the SubState Machine runs and responds to events before anything in the this
-            //            // state machine does
-            //            // ThisEvent = RunTemplateSubHSM(ThisEvent);
-            //            switch (ThisEvent.EventType) {
-            //                case ES_ENTRY:
-            //                    left(DRIVE_SPEED);
-            //                    right(DRIVE_SPEED);
-            //                    break;
-            //                case TAPE:
-            //                    if (ThisEvent.EventParam & TAPE_FL) {
-            //                        nextState = RotateRight;
-            //                        makeTransition = TRUE;
-            //                    } else if (ThisEvent.EventParam & TAPE_FR) {
-            //                        nextState = RotateLeft;
-            //                        makeTransition = TRUE;
-            //                    }
-            //                    break;
-            //                case ES_NO_EVENT:
-            //                default:
-            //                    break;
-            //            }
-            //            break;
-            //        case RotateLeft:
-            //            switch (ThisEvent.EventType) {
-            //                case ES_ENTRY:
-            //                    left(TURN_SPEED);
-            //                    right(0);
-            //                    break;
-            //                case TAPE:
-            //                    // if (ThisEvent.EventParam & TAPE_BR)
-            //                    if (ThisEvent.EventParam & TAPE_FL) {
-            //                        nextState = Stop;
-            //                        makeTransition = TRUE;
-            //                    }
-            //                    break;
-            //            }
-            //            break;
-            //        case RotateRight:
-            //            switch (ThisEvent.EventType) {
-            //                case ES_ENTRY:
-            //                    left(0);
-            //                    right(TURN_SPEED);
-            //                    break;
-            //                    // case TAPE:
-            //                case TAPE:
-            //                    // if (ThisEvent.EventParam & TAPE_BR)
-            //                    if (ThisEvent.EventParam & TAPE_FR ) {
-            //                        nextState = Stop;
-            //                        makeTransition = TRUE;
-            //                    }
-            //                    break;
-            //            }
-            //            break;
         case pivit: // move to have the front sensor on the line and the back not on the line assume both are on the line
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(700);
-                    right(0);
-                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
-                    //intake(TRUE);
+                    left(500);
+                    right(800);
                     break;
-<<<<<<< HEAD
-                case ES_TIMEOUT:
-
-                    nextState = forward;
-                    makeTransition = TRUE;
-
-=======
                 case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_FL) {
-                        nextState = forward;
+                        nextState = forwardLeft;
                         makeTransition = TRUE;
                     }
->>>>>>> b0577dca9b5d5878c48d2b4c5159e1576fa548e1
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case forwardRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(500);
+                    right(1000);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = forwardLeft;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        nextState = QCW;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case TAPE_OFF:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = forwardLeft;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case BUMPER_ON:
+                    nextState = Stop;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+
+                default:
+                    break;
+            }
+            break;
+        case forwardLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(1000);
+                    right(500);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = forwardRight;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        nextState = QCW;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case TAPE_OFF:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = forwardRight;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case BUMPER_ON:
+                    nextState = Stop;
+                    makeTransition = TRUE;
                     break;
                 case ES_NO_EVENT:
                 default:
                     break;
             }
             break;
-        case forward: // in the first state, replace this with correct names
-            // run sub-state machine for this state
-            // NOTE: the SubState Machine runs and responds to events before anything in the this
-            // state machine does
-            // ThisEvent = RunTemplateSubHSM(ThisEvent);
+        case QCW:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(900);
-                    right(1000);
+                    left(800);
+                    right(-800);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 700);
                     break;
-                case TAPE_ON:
-                    if (ThisEvent.EventParam & TAPE_FL) {
-                        nextState = pivit;
-                        makeTransition = TRUE;
-                    }
-                    if (ThisEvent.EventParam & TAPE_FR) {
-                        nextState = Stop;
-                        makeTransition = TRUE;
-                    }
+                case ES_TIMEOUT:
+                    nextState = pivit;
+                    makeTransition = TRUE;
+
+                    break;
+                case BUMPER_ON:
+                    nextState = Stop;
+                    makeTransition = TRUE;
+                    ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
                     break;
                 case ES_NO_EVENT:
                 default:
@@ -299,8 +261,6 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                 case ES_ENTRY:
                     left(0);
                     right(0);
-                    //intake(FALSE);
-                    door(TRUE);
                     break;
                 case ES_NO_EVENT:
                 default:

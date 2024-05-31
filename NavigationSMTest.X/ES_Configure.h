@@ -70,12 +70,12 @@ static const char *EventNames[] = {
 	"BATTERY_CONNECTED",
 	"BATTERY_DISCONNECTED",
 	"BUMPER_ON",
-    "BUMPER_OFF",
+	"BUMPER_OFF",
 	"TAPE_ON",
-    "TAPE_OFF",
-    "WALL_CLOSE",
-    "WALL_FAR",
-    "WALL_IN_RANGE",
+	"TAPE_OFF",
+	"WALL_CLOSE",
+	"WALL_FAR",
+	"WALL_IN_RANGE",
 	"NUMBEROFEVENTS",
 };
 

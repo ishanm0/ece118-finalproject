@@ -24,9 +24,9 @@
  ******************************************************************************/
 
 
-#define AD_PORTV3 (1<<0)
-#define AD_PORTV4 (1<<1)
-#define AD_PORTV5 (1<<2)
+#define AD_PORTV3 (1<<0) //taken 
+#define AD_PORTV4 (1<<1) //ir sensor right 
+#define AD_PORTV5 (1<<2) // ir sensor 
 #define AD_PORTV6 (1<<3)
 #define AD_PORTV7 (1<<4)
 #define AD_PORTV8 (1<<5)
