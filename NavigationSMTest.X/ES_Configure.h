@@ -53,6 +53,9 @@ typedef enum {
     WALL_CLOSE,
     WALL_FAR,
     WALL_IN_RANGE,
+    WALL_ALIGNED,
+    AT_DOOR_TAPE,
+    DEPOSIT_DONE,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
@@ -70,12 +73,15 @@ static const char *EventNames[] = {
 	"BATTERY_CONNECTED",
 	"BATTERY_DISCONNECTED",
 	"BUMPER_ON",
-    "BUMPER_OFF",
+	"BUMPER_OFF",
 	"TAPE_ON",
-    "TAPE_OFF",
-    "WALL_CLOSE",
-    "WALL_FAR",
-    "WALL_IN_RANGE",
+	"TAPE_OFF",
+	"WALL_CLOSE",
+	"WALL_FAR",
+	"WALL_IN_RANGE",
+	"WALL_ALIGNED",
+	"AT_DOOR_TAPE",
+	"DEPOSIT_DONE",
 	"NUMBEROFEVENTS",
 };
 
@@ -88,17 +94,17 @@ static const char *EventNames[] = {
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST  TemplateCheckBattery, CheckBumpers, CheckTapeSensors
+#define EVENT_CHECK_LIST  TemplateCheckBattery, CheckBumpers, CheckTapeSensors, CheckWallSensors
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
 // corresponding timer expires. All 16 must be defined. If you are not using
 // a timers, then you can use TIMER_UNUSED
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostNavigationTestHSM
-#define TIMER1_RESP_FUNC TIMER_UNUSED
-#define TIMER2_RESP_FUNC TIMER_UNUSED
-#define TIMER3_RESP_FUNC TIMER_UNUSED
+#define TIMER0_RESP_FUNC PostMainHSM
+#define TIMER1_RESP_FUNC PostMainHSM
+#define TIMER2_RESP_FUNC PostMainHSM
+#define TIMER3_RESP_FUNC PostMainHSM
 #define TIMER4_RESP_FUNC TIMER_UNUSED
 #define TIMER5_RESP_FUNC TIMER_UNUSED
 #define TIMER6_RESP_FUNC TIMER_UNUSED
@@ -120,7 +126,10 @@ static const char *EventNames[] = {
 // the timer number matches where the timer event will be routed
 
 #define GENERIC_NAMED_TIMER 0 /*make sure this is enabled above and posting to the correct state machine*/
-#define NAV_ROTATE_TIMER 0
+#define GAME_TIMER 0
+#define COLLECT1_TIMER 1
+#define COLLECT2_TIMER 2
+#define NAV_TIMER 3
 
 
 /****************************************************************************/
@@ -152,11 +161,11 @@ static const char *EventNames[] = {
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public fuction prototypes
-#define SERV_1_HEADER "NavigationTestHSM.h"
+#define SERV_1_HEADER "MainHSM.h"
 // the name of the Init function
-#define SERV_1_INIT InitNavigationTestHSM
+#define SERV_1_INIT InitMainHSM
 // the name of the run function
-#define SERV_1_RUN RunNavigationTestHSM
+#define SERV_1_RUN RunMainHSM
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 3
 #endif
