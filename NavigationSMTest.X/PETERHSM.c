@@ -51,6 +51,13 @@ typedef enum {
     forwardRight,
     forwardLeft,
     QCW,
+    QCWT,
+    pause,
+    REVERSEBACK,
+    smack,
+    reajust,
+    reajustT,
+    LeftMove,
     Stop,
 } TemplateHSMState_t;
 
@@ -60,6 +67,13 @@ static const char *StateNames[] = {
 	"forwardRight",
 	"forwardLeft",
 	"QCW",
+	"QCWT",
+	"pause",
+	"REVERSEBACK",
+	"smack",
+	"reajust",
+	"reajustT",
+	"LeftMove",
 	"Stop",
 };
 
@@ -142,13 +156,12 @@ uint8_t PostPETERHSM(ES_Event ThisEvent) {
 ES_Event RunPETERHSM(ES_Event ThisEvent) {
     uint8_t makeTransition = FALSE; // use to flag transition
     TemplateHSMState_t nextState; // <- change type to correct enum
-
+    int x = 0;
     ES_Tattle(); // trace call stack
 
     switch (CurrentState) {
         case InitPState: // If current state is initial Pseudo State
-            if (ThisEvent.EventType == BATTERY_CONNECTED) 
-            {
+            if (ThisEvent.EventType == BATTERY_CONNECTED) {
                 nextState = pivit;
                 makeTransition = TRUE;
                 ThisEvent.EventType = ES_NO_EVENT;
@@ -158,6 +171,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case pivit: // move to have the front sensor on the line and the back not on the line assume both are on the line
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+
                     left(500);
                     right(800);
                     break;
@@ -166,7 +180,13 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                         nextState = forwardLeft;
                         makeTransition = TRUE;
                     }
+                    break;
+                case BUMPER_ON:
+                    nextState = REVERSEBACK;
+                    makeTransition = TRUE;
+                    break;
                 case ES_NO_EVENT:
+
                 default:
                     break;
             }
@@ -194,7 +214,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     }
                     break;
                 case BUMPER_ON:
-                    nextState = Stop;
+                    nextState = REVERSEBACK;
                     makeTransition = TRUE;
                     break;
                 case ES_NO_EVENT:
@@ -226,7 +246,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     }
                     break;
                 case BUMPER_ON:
-                    nextState = Stop;
+                    nextState = REVERSEBACK;
                     makeTransition = TRUE;
                     break;
                 case ES_NO_EVENT:
@@ -242,20 +262,163 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 700);
                     break;
                 case ES_TIMEOUT:
-                    nextState = pivit;
+                    nextState = pause;
                     makeTransition = TRUE;
-
-                    break;
-                case BUMPER_ON:
-                    nextState = Stop;
-                    makeTransition = TRUE;
-                    ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
                     break;
                 case ES_NO_EVENT:
                 default:
                     break;
             }
             break;
+        case pause:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(0);
+                    right(0);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    if ((IO_PortsReadPort(PORTZ) & PIN12)) {//left side on tape
+                        nextState = forwardLeft;
+                        makeTransition = TRUE;
+                    }else{
+                        nextState = forwardRight; //left side not on tape
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case REVERSEBACK:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-800);
+                    right(-1000);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = smack;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case smack:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(1000);
+                    right(1000);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 350);
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                        ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
+                    }
+                    if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                        ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = LeftMove;
+                        makeTransition = TRUE;
+                    }
+                    
+                    break;
+                case ES_TIMEOUT:
+                    nextState = reajust;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case reajust://my loop
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(0);
+                    right(1000);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 700);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = REVERSEBACK;
+                    makeTransition = TRUE;
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = LeftMove;
+                        makeTransition = TRUE;
+                    }
+                    ES_Timer_StopTimer(1);
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = reajustT;
+                        makeTransition = TRUE;
+                        ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
+                    }
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case reajustT: //consume a front bumper event if it happens
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(0);
+                    right(1000);
+                    ES_Timer_InitTimer(1, 600);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = REVERSEBACK;
+                    makeTransition = TRUE;
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = LeftMove;
+                        makeTransition = TRUE;
+                    }
+                    ES_Timer_StopTimer(1);
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case LeftMove:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(1000);
+                    right(-1000);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BL) {
+                        nextState = pause;
+                        makeTransition = TRUE;
+                    }
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
         case Stop:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
