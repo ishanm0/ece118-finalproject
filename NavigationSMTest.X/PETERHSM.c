@@ -56,7 +56,6 @@ typedef enum {
     REVERSEBACK,
     smack,
     reajust,
-    reajustT,
     LeftMove,
     Stop,
 } TemplateHSMState_t;
@@ -72,7 +71,6 @@ static const char *StateNames[] = {
 	"REVERSEBACK",
 	"smack",
 	"reajust",
-	"reajustT",
 	"LeftMove",
 	"Stop",
 };
@@ -171,7 +169,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case pivit: // move to have the front sensor on the line and the back not on the line assume both are on the line
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-
+                    printf("Pivot\r\n");
                     left(500);
                     right(800);
                     break;
@@ -182,8 +180,14 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     }
                     break;
                 case BUMPER_ON:
-                    nextState = REVERSEBACK;
-                    makeTransition = TRUE;
+                    if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
                     break;
                 case ES_NO_EVENT:
 
@@ -194,6 +198,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case forwardRight:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("forwardRight\r\n");
                     left(500);
                     right(1000);
                     break;
@@ -214,8 +219,14 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     }
                     break;
                 case BUMPER_ON:
-                    nextState = REVERSEBACK;
-                    makeTransition = TRUE;
+                    if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
                     break;
                 case ES_NO_EVENT:
 
@@ -226,6 +237,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case forwardLeft:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("forwardLeft\r\n");
                     left(1000);
                     right(500);
                     break;
@@ -246,8 +258,15 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                     }
                     break;
                 case BUMPER_ON:
-                    nextState = REVERSEBACK;
-                    makeTransition = TRUE;
+                    if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
+
                     break;
                 case ES_NO_EVENT:
                 default:
@@ -257,6 +276,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case QCW:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("QCW\r\n");
                     left(800);
                     right(-800);
                     ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 700);
@@ -273,15 +293,16 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case pause:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("pause\n\r");
                     left(0);
                     right(0);
-                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 100);
                     break;
                 case ES_TIMEOUT:
                     if ((IO_PortsReadPort(PORTZ) & PIN12)) {//left side on tape
                         nextState = forwardLeft;
                         makeTransition = TRUE;
-                    }else{
+                    } else {
                         nextState = forwardRight; //left side not on tape
                         makeTransition = TRUE;
                     }
@@ -294,6 +315,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case REVERSEBACK:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("reverseBack\r\n");
                     left(-800);
                     right(-1000);
                     ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
@@ -310,6 +332,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case smack:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("smack\r\n");
                     left(1000);
                     right(1000);
                     ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 350);
@@ -331,7 +354,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                         nextState = LeftMove;
                         makeTransition = TRUE;
                     }
-                    
+
                     break;
                 case ES_TIMEOUT:
                     nextState = reajust;
@@ -345,9 +368,10 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case reajust://my loop
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("reajust\r\n");
                     left(0);
                     right(1000);
-                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 700);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 600);
                     break;
                 case ES_TIMEOUT:
                     nextState = REVERSEBACK;
@@ -358,57 +382,30 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                         nextState = LeftMove;
                         makeTransition = TRUE;
                     }
-                    ES_Timer_StopTimer(1);
-                    break;
-                case BUMPER_ON:
-                    if (ThisEvent.EventParam & BUMPER_TRF) {
-                        nextState = REVERSEBACK;
-                        makeTransition = TRUE;
-                    }
-                    if (ThisEvent.EventParam & BUMPER_TLF) {
-                        nextState = reajustT;
-                        makeTransition = TRUE;
-                        ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
-                    }
-                case ES_NO_EVENT:
-                default:
-                    break;
-            }
-            break;
-        case reajustT: //consume a front bumper event if it happens
-            switch (ThisEvent.EventType) {
-                case ES_ENTRY:
-                    left(0);
-                    right(1000);
-                    ES_Timer_InitTimer(1, 600);
-                    break;
-                case ES_TIMEOUT:
-                    nextState = REVERSEBACK;
-                    makeTransition = TRUE;
-                    break;
-                case TAPE_ON:
-                    if (ThisEvent.EventParam & TAPE_FL) {
+                    if (ThisEvent.EventParam & TAPE_FR) {
                         nextState = LeftMove;
                         makeTransition = TRUE;
                     }
-                    ES_Timer_StopTimer(1);
+
                     break;
                 case BUMPER_ON:
                     if (ThisEvent.EventParam & BUMPER_TRF) {
                         nextState = REVERSEBACK;
                         makeTransition = TRUE;
                     }
-                    break;
                 case ES_NO_EVENT:
                 default:
                     break;
             }
             break;
         case LeftMove:
+            printf("LeftMove\r\n");
+            left(900);
+            right(-900);
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(1000);
-                    right(-1000);
+                    left(900);
+                    right(-900);
                     break;
                 case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_BL) {
@@ -422,6 +419,7 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
         case Stop:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
+                    printf("Stop\r\n");
                     left(0);
                     right(0);
                     break;
