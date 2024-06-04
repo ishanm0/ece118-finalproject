@@ -19,7 +19,7 @@ endif
 endif
 
 # Environment
-MKDIR=gnumkdir -p
+MKDIR=mkdir -p
 RM=rm -f 
 MV=mv 
 CP=cp 
@@ -42,12 +42,6 @@ ifeq ($(COMPARE_BUILD), true)
 COMPARISON_BUILD=-mafrlcsj
 else
 COMPARISON_BUILD=
-endif
-
-ifdef SUB_IMAGE_ADDRESS
-
-else
-SUB_IMAGE_ADDRESS_COMMAND=
 endif
 
 # Object Directory
@@ -85,15 +79,15 @@ LDLIBSOPTIONS=
 FIXDEPS=fixDeps
 
 # The following macros may be used in the pre and post step lines
-_/_=\\
-ShExtension=.bat
+_/_=/
+ShExtension=.sh
 Device=PIC32MX320F128H
-ProjectDir="C:\Users\pokem\Desktop\ece118-finalproject\NavigationSMTest.X"
+ProjectDir=/Users/ishanmadan/Developer/_school/ece118-finalproject/NavigationSMTest.X
 ProjectName=NavigationSMTest
 ConfName=default
-ImagePath="${DISTDIR}\NavigationSMTest.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}"
-ImageDir="${DISTDIR}"
-ImageName="NavigationSMTest.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}"
+ImagePath=dist/default/${IMAGE_TYPE}/NavigationSMTest.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+ImageDir=dist/default/${IMAGE_TYPE}
+ImageName=NavigationSMTest.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 IsDebug="true"
 else
@@ -111,7 +105,7 @@ endif
 	@echo "--------------------------------------"
 
 MP_PROCESSOR_OPTION=32MX320F128H
-MP_LINKER_FILE_OPTION=,--script="..\ECE118\bootloader320.ld"
+MP_LINKER_FILE_OPTION=,--script="../ECE118/bootloader320.ld"
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: assemble
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
@@ -471,13 +465,13 @@ else
 ${DISTDIR}/NavigationSMTest.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   ../ECE118/bootloader320.ld
 	@${MKDIR} ${DISTDIR} 
 	${MP_CC} $(MP_EXTRA_LD_PRE)  -mprocessor=$(MP_PROCESSOR_OPTION)  -o ${DISTDIR}/NavigationSMTest.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=_min_heap_size=8192,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,${DISTDIR}/memoryfile.xml -mdfp="${DFP_DIR}"
-	${MP_CC_DIR}\\xc32-bin2hex ${DISTDIR}/NavigationSMTest.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} 
+	${MP_CC_DIR}/xc32-bin2hex ${DISTDIR}/NavigationSMTest.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} 
 endif
 
 .pre:
 	@echo "--------------------------------------"
-	@echo "User defined pre-build step: [python ../ECE118/scripts/Enum_To_String.py]"
-	@python ../ECE118/scripts/Enum_To_String.py
+	@echo "User defined pre-build step: [python3 ../ECE118/scripts/Enum_To_String.py]"
+	@python3 ../ECE118/scripts/Enum_To_String.py
 	@echo "--------------------------------------"
 
 # Subprojects
@@ -495,7 +489,7 @@ endif
 # Enable dependency checking
 .dep.inc: .depcheck-impl
 
-DEPFILES=$(shell mplabwildcard ${POSSIBLE_DEPFILES})
+DEPFILES=$(wildcard ${POSSIBLE_DEPFILES})
 ifneq (${DEPFILES},)
 include ${DEPFILES}
 endif
