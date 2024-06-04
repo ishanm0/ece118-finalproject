@@ -29,6 +29,16 @@
       <itemPath>EventChecker.h</itemPath>
       <itemPath>NavigationTestHSM.h</itemPath>
       <itemPath>PETERHSM.h</itemPath>
+      <itemPath>Common.h</itemPath>
+      <itemPath>DepositSubHSM.h</itemPath>
+      <itemPath>FindWallSubHSM.h</itemPath>
+      <itemPath>FollowTapeSubHSM.h</itemPath>
+      <itemPath>FollowWallSubHSM.h</itemPath>
+      <itemPath>MainHSM.h</itemPath>
+      <itemPath>ZigZagSubHSM.h</itemPath>
+      <itemPath>AvoidGoLeftSubHSM.h</itemPath>
+      <itemPath>AvoidGoRightSubHSM.h</itemPath>
+      <itemPath>AvoidOpenSpaceSubHSM.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -57,6 +67,16 @@
       <itemPath>ES_Main.c</itemPath>
       <itemPath>NavigationTestHSM.c</itemPath>
       <itemPath>PETERHSM.c</itemPath>
+      <itemPath>Common.c</itemPath>
+      <itemPath>DepositSubHSM.c</itemPath>
+      <itemPath>FindWallSubHSM.c</itemPath>
+      <itemPath>FollowTapeSubHSM.c</itemPath>
+      <itemPath>FollowWallSubHSM.c</itemPath>
+      <itemPath>MainHSM.c</itemPath>
+      <itemPath>ZigZagSubHSM.c</itemPath>
+      <itemPath>AvoidGoLeftSubHSM.c</itemPath>
+      <itemPath>AvoidGoRightSubHSM.c</itemPath>
+      <itemPath>AvoidOpenSpaceSubHSM.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -104,9 +124,9 @@
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
         <makeUseCleanTarget>false</makeUseCleanTarget>
-        <makeCustomizationPreStep>python ../ECE118/scripts/Enum_To_String.py</makeCustomizationPreStep>
-        <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
-        <makeCustomizationPostStep></makeCustomizationPostStep>
+        <makeCustomizationPreStep>python3 ../ECE118/scripts/Enum_To_String.py</makeCustomizationPreStep>
+        <makeCustomizationPostStepEnabled>true</makeCustomizationPostStepEnabled>
+        <makeCustomizationPostStep>scp dist/default/production/*.production.hex ishan@ubuntu-server-qemu-vm.local:project.production.hex</makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
         <makeCustomizationEnableLongLines>false</makeCustomizationEnableLongLines>
         <makeCustomizationNormalizeHexFile>false</makeCustomizationNormalizeHexFile>
@@ -119,8 +139,7 @@
         <property key="enable-symbols" value="true"/>
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
-        <property key="extra-include-directories"
-                  value=".;../ECE118/include;..\..\..\..\..\ECE118\include"/>
+        <property key="extra-include-directories" value=".;../ECE118/include"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="false"/>
@@ -244,7 +263,9 @@
         <C32Global>
         </C32Global>
       </item>
-      <item path="PETERHSM.c" ex="false" overriding="false">
+      <item path="NavigationTestHSM.h" ex="true" overriding="false">
+      </item>
+      <item path="PETERHSM.c" ex="true" overriding="false">
         <C32>
         </C32>
         <C32-AR>

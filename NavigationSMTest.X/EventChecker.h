@@ -40,4 +40,6 @@ uint8_t CheckBumpers(void);
 
 uint8_t CheckTapeSensors(void);
 
+uint8_t CheckWallSensors(void);
+
 #endif /* TEMPLATEEVENTCHECKER_H */

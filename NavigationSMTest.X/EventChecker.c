@@ -9,7 +9,8 @@
 #include "AD.h"
 
 // #include "TemplateService.h"
-#include "NavigationTestHSM.h"
+// #include "NavigationTestHSM.h"
+#include "MainHSM.h"
 #include <stdio.h>
 #include "IO_Ports.h"
 
@@ -20,6 +21,14 @@
 
 #define BUMPER_PORT PORTZ
 #define NUM_CHECKS 5
+
+#define WALL_DIST_CLOSE_MAX 40
+#define WALL_DIST_IN_RANGE_MIN 60
+#define WALL_DIST_IN_RANGE_MAX 500
+#define WALL_DIST_FAR_MIN 550
+
+#define WALL_DIST_L_PORT AD_PORTV5
+#define WALL_DIST_R_PORT AD_PORTV4
 
 /*******************************************************************************
  * EVENTCHECKER_TEST SPECIFIC CODE                                                             *
@@ -49,6 +58,8 @@ static uint8_t bumperState;
 static uint8_t bumperBuffer[NUM_CHECKS];
 static uint8_t idx;
 static uint16_t tapeState = 0;
+static int distLStatus = 0;
+static int distRStatus = 0;
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -91,8 +102,9 @@ uint8_t TemplateCheckBattery(void)
         returnVal = TRUE;
         lastEvent = curEvent; // update history
 #ifndef EVENTCHECKER_TEST     // keep this as is for test harness
-        //PostNavigationTestHSM(thisEvent);
-        PostPETERHSM(thisEvent);
+        PostMainHSM(thisEvent);
+        // PostNavigationTestHSM(thisEvent);
+        // PostPETERHSM(thisEvent);
 #else
         SaveEvent(thisEvent);
 #endif
@@ -135,7 +147,8 @@ uint8_t CheckBumpers(void)
             thisEvent.EventType = BUMPER_OFF;
             thisEvent.EventParam = xor&bumperState;
             returnVal = TRUE;
-            PostPETERHSM(thisEvent);
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
         if (xor&newBumperState)
         {
@@ -143,8 +156,10 @@ uint8_t CheckBumpers(void)
             thisEvent.EventType = BUMPER_ON;
             thisEvent.EventParam = xor&newBumperState;
             returnVal = TRUE;
-            PostPETERHSM(thisEvent);
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
+        bumperState = newBumperState;
     }
     bumperState = newBumperState;
     return returnVal;
@@ -169,7 +184,8 @@ uint8_t CheckTapeSensors(void)
             thisEvent.EventParam = xor&tapeState;
             thisEvent.EventType = TAPE_OFF;
             returnVal = TRUE;
-            PostPETERHSM(thisEvent);
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
         if (xor&newTapeState)
         {
@@ -177,8 +193,126 @@ uint8_t CheckTapeSensors(void)
             thisEvent.EventParam = xor&newTapeState;
             thisEvent.EventType = TAPE_ON;
             returnVal = TRUE;
-            PostPETERHSM(thisEvent);
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
+        tapeState = newTapeState;
+    }
+    return returnVal;
+}
+
+uint8_t CheckWallSensors(void)
+{
+    if (!(AD_IsNewDataReady()))
+    {
+        return FALSE;
+    }
+    uint8_t returnVal = FALSE;
+    ES_Event thisEvent;
+    uint16_t distL = AD_ReadADPin(WALL_DIST_L_PORT);
+    uint16_t distR = AD_ReadADPin(WALL_DIST_R_PORT);
+
+    int newLStatus = 0;
+    int newRStatus = 0;
+
+    if (distLStatus == 0 && distL < WALL_DIST_CLOSE_MAX)
+    {
+        newLStatus = -1;
+    }
+    else if (distLStatus == -1 && distL > WALL_DIST_IN_RANGE_MIN)
+    {
+        newLStatus = 0;
+    }
+    else if (distLStatus == 0 && distL > WALL_DIST_FAR_MIN)
+    {
+        newLStatus = 1;
+    }
+    else if (distLStatus == 1 && distL < WALL_DIST_IN_RANGE_MAX)
+    {
+        newLStatus = 0;
+    }
+    else
+    {
+        newLStatus = distLStatus;
+    }
+
+    if (distRStatus == 0 && distR < WALL_DIST_CLOSE_MAX)
+    {
+        newRStatus = -1;
+    }
+    else if (distRStatus == -1 && distR > WALL_DIST_IN_RANGE_MIN)
+    {
+        newRStatus = 0;
+    }
+    else if (distRStatus == 0 && distR > WALL_DIST_FAR_MIN)
+    {
+        newRStatus = 1;
+    }
+    else if (distRStatus == 1 && distR < WALL_DIST_IN_RANGE_MAX)
+    {
+        newRStatus = 0;
+    }
+    else
+    {
+        newRStatus = distRStatus;
+    }
+
+    if (newLStatus != distLStatus)
+    {
+        if (newLStatus == -1)
+        {
+            thisEvent.EventType = WALL_CLOSE;
+            thisEvent.EventParam = BIT_0;
+            returnVal = TRUE;
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else if (newLStatus == 1)
+        {
+            thisEvent.EventType = WALL_FAR;
+            thisEvent.EventParam = BIT_0;
+            returnVal = TRUE;
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else
+        {
+            thisEvent.EventType = WALL_IN_RANGE;
+            thisEvent.EventParam = BIT_0;
+            returnVal = TRUE;
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        distLStatus = newLStatus;
+    }
+
+    if (newRStatus != distRStatus)
+    {
+        if (newRStatus == -1)
+        {
+            thisEvent.EventType = WALL_CLOSE;
+            thisEvent.EventParam = BIT_1;
+            returnVal = TRUE;
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else if (newRStatus == 1)
+        {
+            thisEvent.EventType = WALL_FAR;
+            thisEvent.EventParam = BIT_1;
+            returnVal = TRUE;
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else
+        {
+            thisEvent.EventType = WALL_IN_RANGE;
+            thisEvent.EventParam = BIT_1;
+            returnVal = TRUE;
+            PostMainHSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        distRStatus = newRStatus;
     }
     tapeState = newTapeState;
     return returnVal;
