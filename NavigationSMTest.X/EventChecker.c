@@ -21,6 +21,9 @@
 #define BUMPER_PORT PORTZ
 #define NUM_CHECKS 5
 
+//#define right;
+//#define left;
+
 /*******************************************************************************
  * EVENTCHECKER_TEST SPECIFIC CODE                                                             *
  ******************************************************************************/
@@ -68,24 +71,19 @@ static uint16_t tapeState = 0;
  * @note Use this code as a template for your other event checkers, and modify as necessary.
  * @author Gabriel H Elkaim, 2013.09.27 09:18
  * @modified Gabriel H Elkaim/Max Dunne, 2016.09.12 20:08 */
-uint8_t TemplateCheckBattery(void)
-{
+uint8_t TemplateCheckBattery(void) {
     static ES_EventTyp_t lastEvent = BATTERY_DISCONNECTED;
     ES_EventTyp_t curEvent;
     ES_Event thisEvent;
     uint8_t returnVal = FALSE;
     uint16_t batVoltage = AD_ReadADPin(BAT_VOLTAGE); // read the battery voltage
 
-    if (batVoltage > BATTERY_DISCONNECT_THRESHOLD)
-    { // is battery connected?
+    if (batVoltage > BATTERY_DISCONNECT_THRESHOLD) { // is battery connected?
         curEvent = BATTERY_CONNECTED;
-    }
-    else
-    {
+    } else {
         curEvent = BATTERY_DISCONNECTED;
     }
-    if (curEvent != lastEvent)
-    { // check for change from last time
+    if (curEvent != lastEvent) { // check for change from last time
         thisEvent.EventType = curEvent;
         thisEvent.EventParam = batVoltage;
         returnVal = TRUE;
@@ -102,8 +100,7 @@ uint8_t TemplateCheckBattery(void)
 
 // static uint16_t bumperState = 0;
 
-uint8_t CheckBumpers(void)
-{
+uint8_t CheckBumpers(void) {
     uint8_t returnVal = FALSE;
     ES_Event thisEvent;
     uint16_t newBumperState = IO_PortsReadPort(BUMPER_PORT) >> 3;
@@ -117,8 +114,7 @@ uint8_t CheckBumpers(void)
     bumperBuffer[idx] = newBumperState;
     idx = (idx + 1) % NUM_CHECKS;
 
-    for (int i = 0; i < NUM_CHECKS; i++)
-    {
+    for (int i = 0; i < NUM_CHECKS; i++) {
         j &= bumperBuffer[i];
     }
 
@@ -126,19 +122,16 @@ uint8_t CheckBumpers(void)
 
     // printf(" %x", newBumperState);
 
-    if (newBumperState != bumperState)
-    {
+    if (newBumperState != bumperState) {
         uint16_t xor = newBumperState ^ bumperState;
-        if (xor&bumperState)
-        {
+        if (xor & bumperState) {
             // any high bit represents a bumper that was released
             thisEvent.EventType = BUMPER_OFF;
             thisEvent.EventParam = xor&bumperState;
             returnVal = TRUE;
             PostObstacleDetectSM(thisEvent);
         }
-        if (xor&newBumperState)
-        {
+        if (xor & newBumperState) {
             // any high bit represents a bumper that was pressed
             thisEvent.EventType = BUMPER_ON;
             thisEvent.EventParam = xor&newBumperState;
@@ -150,29 +143,58 @@ uint8_t CheckBumpers(void)
     return returnVal;
 }
 
-uint8_t CheckTapeSensors(void)
-{
+//uint8_t CheckWallSensors(void) {
+//    uint8_t returnVal = FALSE;
+//    ES_Event thisEvent;
+//    unsigned int rightSide = AD_ReadADPin(AD_PORTV4);
+//    unsigned int leftSide = AD_ReadADPin(AD_PORTV5);
+//
+//    if (rightSide <= 500) {
+//        thisEvent.EventParam = right;
+//        thisEvent.EventType = WALL_CLOSE;
+//        returnVal = TRUE;
+//        PostObstacleDetectSM(thisEvent);
+//    }
+//    if (rightSide > 500) {
+//        thisEvent.EventParam = right;
+//        thisEvent.EventType = WALL_FAR;
+//        returnVal = TRUE;
+//        PostObstacleDetectSM(thisEvent);
+//    }
+//    if (leftSide <= 500) {
+//        thisEvent.EventParam = left;
+//        thisEvent.EventType = WALL_CLOSE;
+//        returnVal = TRUE;
+//        PostObstacleDetectSM(thisEvent);
+//    }
+//    if (leftSide > 500) {
+//        thisEvent.EventParam = left;
+//        thisEvent.EventType = WALL_FAR;
+//        returnVal = TRUE;
+//        PostObstacleDetectSM(thisEvent);
+//    }
+//    return returnVal;
+//}
+
+uint8_t CheckTapeSensors(void) {
     uint8_t returnVal = FALSE;
     ES_Event thisEvent;
     uint16_t newTapeState = (IO_PortsReadPort(PORTX) & PIN4) >> 4; // shift from bit_4 to bit_0
-    newTapeState |= (IO_PortsReadPort(PORTY) & PIN9) >> (9 - 1);   // shift from bit_9 to bit_1
+    newTapeState |= (IO_PortsReadPort(PORTY) & PIN9) >> (9 - 1); // shift from bit_9 to bit_1
     newTapeState |= (IO_PortsReadPort(PORTY) & PIN11) >> (11 - 2); // etc
     newTapeState |= (IO_PortsReadPort(PORTZ) & PIN12) >> (12 - 3);
     newTapeState &= 0xf; // mask off the unused bits - only 4 bits are used
 
-    if (newTapeState != tapeState)
-    {
+    if (newTapeState != tapeState) {
         uint16_t xor = newTapeState ^ tapeState;
-        if (xor&tapeState)
-        {
+        if (xor & tapeState) {
             // any high bit represents a tape sensor that is now off tape
             thisEvent.EventParam = xor&tapeState;
             thisEvent.EventType = TAPE_OFF;
             returnVal = TRUE;
             PostObstacleDetectSM(thisEvent);
         }
-        if (xor&newTapeState)
-        {
+        if (xor & newTapeState) {
             // any high bit represents a tape sensor that is now on tape
             thisEvent.EventParam = xor&newTapeState;
             thisEvent.EventType = TAPE_ON;

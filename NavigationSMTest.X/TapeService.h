@@ -1,5 +1,5 @@
 /*
- * File: TemplateService.h
+ * File: TapeService.h
  * Author: J. Edward Carryer
  * Modified: Gabriel H Elkaim
  *
@@ -14,8 +14,8 @@
  * Updated on 13/Nov/2013
  */
 
-#ifndef TemplateService_H  // <- This should be changed to your own guard on both
-#define TemplateService_H  //    of these lines
+#ifndef TapeService_H  // <- This should be changed to your own guard on both
+#define TapeService_H  //    of these lines
 
 
 /*******************************************************************************
@@ -40,19 +40,19 @@
 
  
 /**
- * @Function InitTemplateService(uint8_t Priority)
+ * @Function InitTapeService(uint8_t Priority)
  * @param Priority - internal variable to track which event queue to use
  * @return TRUE or FALSE
  * @brief This will get called by the framework at the beginning of the code
  *        execution. It will post an ES_INIT event to the appropriate event
- *        queue, which will be handled inside RunTemplateService function. Remember
+ *        queue, which will be handled inside RunTapeService function. Remember
  *        to rename this to something appropriate.
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-uint8_t InitTemplateService(uint8_t Priority);
+uint8_t InitTapeService(uint8_t Priority);
 
 /**
- * @Function PostTemplateService(ES_Event ThisEvent)
+ * @Function PostTapeService(ES_Event ThisEvent)
  * @param ThisEvent - the event (type and param) to be posted to queue
  * @return TRUE or FALSE
  * @brief This function is a wrapper to the queue posting function, and its name
@@ -60,10 +60,10 @@ uint8_t InitTemplateService(uint8_t Priority);
  *        be posted to. Remember to rename to something appropriate.
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-uint8_t PostTemplateService(ES_Event ThisEvent);
+uint8_t PostTapeService(ES_Event ThisEvent);
 
 /**
- * @Function RunTemplateService(ES_Event ThisEvent)
+ * @Function RunTapeService(ES_Event ThisEvent)
  * @param ThisEvent - the event (type and param) to be responded.
  * @return Event - return event (type and param), in general should be ES_NO_EVENT
  * @brief This function is where you implement the whole of the service,
@@ -71,9 +71,9 @@ uint8_t PostTemplateService(ES_Event ThisEvent);
  * @note Remember to rename to something appropriate.
  *       Returns ES_NO_EVENT if the event have been "consumed." 
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-ES_Event RunTemplateService(ES_Event ThisEvent);
+ES_Event RunTapeService(ES_Event ThisEvent);
 
 
 
-#endif /* TemplateService_H */
+#endif /* TapeService_H */
 

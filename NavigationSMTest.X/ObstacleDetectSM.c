@@ -35,10 +35,10 @@
 
 #define DRIVE_SPEED 1000
 #define TURN_SPEED 800
-#define RIGHT_TANK_TURN_MS 700
+#define RIGHT_TANK_TURN_MS 750
 #define FORWARD_A_BIT 450
 #define ROTATE_AGAINST_WALL_MS 1400
-#define REVERSE_TURN_MS 500
+#define REVERSE_TURN_MS 330
 
 #define LEFT_FACTOR 1
 #define RIGHT_FACTOR 0.985
@@ -50,37 +50,39 @@
 typedef enum {
     InitPState,
     DriveForward,
-    DriveForwardLeftSide,
     DriveForwardRightSide,
     RotateLeft,
     RotateRight,
     RotateUntilHitBackLeft,
-    RotateUntilHitBackRight,
+    ReverseABit,
+    ReverseABit2,
     ReverseTurnLeft,
     ReverseTurnRight,
     TurnLeft,
     TurnRight,
-    DriveForwardABit,
-    RotateAgainstTheLeftSide,
+    RotateABitR,
+    RotateABitL,
     RotateAgainstTheRightSide,
+    Stop,
 } TemplateHSMState_t;
 
 static const char *StateNames[] = {
 	"InitPState",
 	"DriveForward",
-	"DriveForwardLeftSide",
 	"DriveForwardRightSide",
 	"RotateLeft",
 	"RotateRight",
 	"RotateUntilHitBackLeft",
-	"RotateUntilHitBackRight",
+	"ReverseABit",
+	"ReverseABit2",
 	"ReverseTurnLeft",
 	"ReverseTurnRight",
 	"TurnLeft",
 	"TurnRight",
-	"DriveForwardABit",
-	"RotateAgainstTheLeftSide",
+	"RotateABitR",
+	"RotateABitL",
 	"RotateAgainstTheRightSide",
+	"Stop",
 };
 
 /*******************************************************************************
@@ -162,7 +164,7 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
     uint8_t makeTransition = FALSE; // use to flag transition
     TemplateHSMState_t nextState; // <- change type to correct enum
 
-    ES_Tattle(); // trace call stack
+    //    ES_Tattle(); // trace call stack
 
     switch (CurrentState) {
         case InitPState: // If current state is initial Pseudo State
@@ -198,12 +200,6 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     } else if (ThisEvent.EventParam & TAPE_FR) {
                         nextState = RotateLeft;
                         makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & TAPE_BL) {
-                        nextState = ReverseTurnRight;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & TAPE_BR) {
-                        nextState = ReverseTurnLeft;
-                        makeTransition = TRUE;
                     }
                     break;
                 case BUMPER_ON:
@@ -213,92 +209,8 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     } else if (ThisEvent.EventParam & BUMPER_TLF) {
                         nextState = ReverseTurnLeft;
                         makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & BUMPER_BLF) {
-                        nextState = RotateAgainstTheLeftSide;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & BUMPER_BRF) {
-                        nextState = RotateAgainstTheRightSide;
-                        makeTransition = TRUE;
-                    }
-                    break;
-                case ES_NO_EVENT:
-                default:
-                    break;
-            }
-            break;
-            //        case DriveForwardABit: // in the first state, replace this with correct names
-            //            // run sub-state machine for this state
-            //            // NOTE: the SubState Machine runs and responds to events before anything in the this
-            //            // state machine does
-            //            // ThisEvent = RunTemplateSubHSM(ThisEvent);
-            //            switch (ThisEvent.EventType) {
-            //                case ES_ENTRY:
-            //                    printf("\r\ndriving!");
-            //                    left(DRIVE_SPEED);
-            //                    right(DRIVE_SPEED);
-            //                    break;
-            //                case TAPE_ON:
-            //                    if (ThisEvent.EventParam & TAPE_FL) {
-            //                        nextState = RotateRight;
-            //                        makeTransition = TRUE;
-            //                    } else if (ThisEvent.EventParam & TAPE_FR) {
-            //                        nextState = RotateLeft;
-            //                        makeTransition = TRUE;
-            //                    }
-            //                    break;
-            //                case BUMPER_ON:
-            //                    if (ThisEvent.EventParam & BUMPER_TRF) {
-            //                        nextState = ReverseTurnRight;
-            //                        makeTransition = TRUE;
-            //                    } else if (ThisEvent.EventParam & BUMPER_TLF) {
-            //                        nextState = ReverseTurnLeft;
-            //                        makeTransition = TRUE;
-            //                    }
-            //                    break;
-            //                    case BUMPER
-            //                case ES_NO_EVENT:
-            //                default:
-            //                    break;
-            //            }
-            //            break;
-        case DriveForwardLeftSide: // in the first state, replace this with correct names
-            // run sub-state machine for this state
-            // NOTE: the SubState Machine runs and responds to events before anything in the this
-            // state machine does
-            // ThisEvent = RunTemplateSubHSM(ThisEvent);
-            switch (ThisEvent.EventType) {
-                case ES_ENTRY:
-                    printf("\r\ndriving!");
-                    left(DRIVE_SPEED);
-                    right(DRIVE_SPEED);
-                    break;
-                case TAPE_ON:
-                    if (ThisEvent.EventParam & TAPE_FL) {
-                        nextState = RotateUntilHitBackRight;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & TAPE_FR) {
-                        nextState = RotateUntilHitBackLeft;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & TAPE_BL) {
-                        nextState = ReverseTurnRight;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & TAPE_BR) {
-                        nextState = ReverseTurnLeft;
-                        makeTransition = TRUE;
-                    }
-                    break;
-                case BUMPER_ON:
-                    if (ThisEvent.EventParam & BUMPER_TRF) {
-                        nextState = ReverseTurnRight;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & BUMPER_TLF) {
-                        nextState = ReverseTurnLeft;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & BUMPER_BLF) {
-                        nextState = RotateAgainstTheLeftSide;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & BUMPER_BRF) {
-                        nextState = RotateAgainstTheRightSide;
+                    } else if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF)) {
+                        nextState = ReverseABit2;
                         makeTransition = TRUE;
                     }
                     break;
@@ -320,18 +232,19 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     break;
                 case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_FR) {
-                        nextState = RotateUntilHitBackLeft;
+                        nextState = ReverseABit;
                         makeTransition = TRUE;
                     } else if (ThisEvent.EventParam & TAPE_FL) {
-                        nextState = RotateUntilHitBackRight;
+                        nextState = ReverseABit;
                         makeTransition = TRUE;
                     } else if (ThisEvent.EventParam & TAPE_BL) {
-                        nextState = ReverseTurnRight;
+                        nextState = RotateABitR;
                         makeTransition = TRUE;
                     } else if (ThisEvent.EventParam & TAPE_BR) {
-                        nextState = ReverseTurnLeft;
+                        nextState = RotateABitL;
                         makeTransition = TRUE;
                     }
+                    break;
                     break;
                 case BUMPER_ON:
                     if (ThisEvent.EventParam & BUMPER_TRF) {
@@ -340,15 +253,43 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     } else if (ThisEvent.EventParam & BUMPER_TLF) {
                         nextState = ReverseTurnLeft;
                         makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & BUMPER_BLF) {
-                        nextState = RotateAgainstTheLeftSide;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & BUMPER_BRF) {
-                        nextState = RotateAgainstTheRightSide;
-                        makeTransition = TRUE;
                     }
                     break;
                 case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case RotateABitR:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-DRIVE_SPEED);
+                    right(-500);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = DriveForwardRightSide;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case RotateABitL:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-500);
+                    right(-DRIVE_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = DriveForwardRightSide;
+                        makeTransition = TRUE;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -366,9 +307,6 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                         makeTransition = TRUE;
                     } else if (ThisEvent.EventParam & BUMPER_TLF) {
                         nextState = ReverseTurnLeft;
-                        makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS)) {
-                        nextState = RotateAgainstTheRightSide;
                         makeTransition = TRUE;
                     }
                     break;
@@ -396,9 +334,6 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     } else if (ThisEvent.EventParam & BUMPER_TLF) {
                         nextState = ReverseTurnLeft;
                         makeTransition = TRUE;
-                    } else if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS)) {
-                        nextState = RotateAgainstTheLeftSide;
-                        makeTransition = TRUE;
                     }
                     break;
                 case ES_TIMEOUT:
@@ -416,10 +351,11 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                 case ES_ENTRY:
                     left(-TURN_SPEED);
                     right(TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1550);
                     break;
-                case TAPE_ON:
-                    if (ThisEvent.EventParam & TAPE_BL) {
-                        nextState = DriveForwardRightSide;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = Stop;
                         makeTransition = TRUE;
                     }
                     break;
@@ -428,19 +364,49 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     break;
             }
             break;
-        case RotateUntilHitBackRight:
+        case RotateAgainstTheRightSide:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(TURN_SPEED);
-                    right(-TURN_SPEED);
+                    left(-TURN_SPEED);
+                    right(TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 800);
                     break;
-                case TAPE_ON:
-                    if (ThisEvent.EventParam & TAPE_BR) {
-                        nextState = DriveForwardLeftSide;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = DriveForwardRightSide;
                         makeTransition = TRUE;
                     }
                     break;
-                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case ReverseABit:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-DRIVE_SPEED);
+                    right(-DRIVE_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = RotateUntilHitBackLeft;
+                    makeTransition = TRUE;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case ReverseABit2:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-DRIVE_SPEED);
+                    right(-DRIVE_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = RotateAgainstTheRightSide;
+                    makeTransition = TRUE;
+                    break;
                 default:
                     break;
             }
@@ -448,8 +414,8 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
         case ReverseTurnRight:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(-1000);
-                    right(-700);
+                    left(-DRIVE_SPEED);
+                    right(-500);
                     ES_Timer_InitTimer(NAV_ROTATE_TIMER, REVERSE_TURN_MS);
                     break;
                 case TAPE_ON:
@@ -474,16 +440,16 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
         case ReverseTurnLeft:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    left(-650);
-                    right(-TURN_SPEED);
+                    left(-500);
+                    right(-DRIVE_SPEED);
                     ES_Timer_InitTimer(NAV_ROTATE_TIMER, REVERSE_TURN_MS);
                     break;
                 case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_BL) {
-                        nextState = RotateRight;
+                        nextState = RotateLeft;
                         makeTransition = TRUE;
                     } else if (ThisEvent.EventParam & TAPE_BR) {
-                        nextState = RotateLeft;
+                        nextState = RotateRight;
                         makeTransition = TRUE;
                     }
                     break;
@@ -497,41 +463,10 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     break;
             }
             break;
-        case RotateAgainstTheLeftSide:
-            switch (ThisEvent.EventType) {
-                case ES_ENTRY:
-                    left(TURN_SPEED);
-                    right(-TURN_SPEED);
-                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 600);
-                    break;
-                case ES_TIMEOUT:
-                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
-                        nextState = DriveForwardLeftSide;
-                        makeTransition = TRUE;
-                    }
-                    break;
-                case ES_NO_EVENT:
-                default:
-                    break;
-            }
-            break;
-        case RotateAgainstTheRightSide:
-            switch (ThisEvent.EventType) {
-                case ES_ENTRY:
-                    left(-TURN_SPEED);
-                    right(TURN_SPEED);
-                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 600);
-                    break;
-                case ES_TIMEOUT:
-                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
-                        nextState = DriveForwardRightSide;
-                        makeTransition = TRUE;
-                    }
-                    break;
-                case ES_NO_EVENT:
-                default:
-                    break;
-            }
+        case Stop:
+            left(0);
+            right(0);
+            intake(FALSE);
             break;
         default: // all unhandled states fall into here
             break;
