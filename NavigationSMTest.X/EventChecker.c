@@ -261,7 +261,7 @@ uint8_t CheckWallSensors(void)
         if (newLStatus == -1)
         {
             thisEvent.EventType = WALL_CLOSE;
-            thisEvent.EventParam = 0x01;
+            thisEvent.EventParam = BIT_0;
             returnVal = TRUE;
             PostMainHSM(thisEvent);
             // PostNavigationTestHSM(thisEvent);
@@ -269,7 +269,7 @@ uint8_t CheckWallSensors(void)
         else if (newLStatus == 1)
         {
             thisEvent.EventType = WALL_FAR;
-            thisEvent.EventParam = 0x01;
+            thisEvent.EventParam = BIT_0;
             returnVal = TRUE;
             PostMainHSM(thisEvent);
             // PostNavigationTestHSM(thisEvent);
@@ -277,7 +277,7 @@ uint8_t CheckWallSensors(void)
         else
         {
             thisEvent.EventType = WALL_IN_RANGE;
-            thisEvent.EventParam = 0x01;
+            thisEvent.EventParam = BIT_0;
             returnVal = TRUE;
             PostMainHSM(thisEvent);
             // PostNavigationTestHSM(thisEvent);
@@ -290,7 +290,7 @@ uint8_t CheckWallSensors(void)
         if (newRStatus == -1)
         {
             thisEvent.EventType = WALL_CLOSE;
-            thisEvent.EventParam = 0x02;
+            thisEvent.EventParam = BIT_1;
             returnVal = TRUE;
             PostMainHSM(thisEvent);
             // PostNavigationTestHSM(thisEvent);
@@ -298,7 +298,7 @@ uint8_t CheckWallSensors(void)
         else if (newRStatus == 1)
         {
             thisEvent.EventType = WALL_FAR;
-            thisEvent.EventParam = 0x02;
+            thisEvent.EventParam = BIT_1;
             returnVal = TRUE;
             PostMainHSM(thisEvent);
             // PostNavigationTestHSM(thisEvent);
@@ -306,7 +306,7 @@ uint8_t CheckWallSensors(void)
         else
         {
             thisEvent.EventType = WALL_IN_RANGE;
-            thisEvent.EventParam = 0x02;
+            thisEvent.EventParam = BIT_1;
             returnVal = TRUE;
             PostMainHSM(thisEvent);
             // PostNavigationTestHSM(thisEvent);

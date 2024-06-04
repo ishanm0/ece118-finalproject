@@ -2,7 +2,9 @@
 #define CONSTANTS_H
 
 #include "ES_Configure.h"
+#include "ES_Framework.h"
 #include "BOARD.h"
+#include <stdio.h>
 
 #define BUMPER_BLF BIT_0 // bottom left front
 #define BUMPER_BLS BIT_1 // bottom left side
@@ -19,6 +21,9 @@
 #define TAPE_BR BIT_2
 #define TAPE_FL BIT_3
 
+#define WALL_LEFT BIT_0
+#define WALL_RIGHT BIT_1
+
 #define DRIVE_SPEED 1000
 #define TURN_SPEED 800
 
@@ -27,11 +32,18 @@
 #define BACK_FROM_TAPE_MS 100
 #define BACK_TO_DOOR_MS 1000
 #define FRONT_FROM_DOOR_MS 100
+#define TAPE_TURN_TIME 1400
+#define DEPOSIT_TIME 1000
 
 #define WALL_DIST_SPEED_FACTOR 0.8
 
 #define LEFT_FACTOR 1
 #define RIGHT_FACTOR 1
+
+#define SWITCH(x)          \
+    nextState = x;         \
+    makeTransition = TRUE; \
+    ThisEvent.EventType = ES_NO_EVENT;
 
 void left(int speed);
 void right(int speed);

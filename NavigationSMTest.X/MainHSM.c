@@ -22,11 +22,6 @@
  ******************************************************************************/
 // Include any defines you need to do
 
-#define SWITCH(x)          \
-    nextState = x;         \
-    makeTransition = TRUE; \
-    ThisEvent.EventType = ES_NO_EVENT;
-
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
@@ -152,6 +147,13 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             // initial state
             // Initialize all sub-state machines
             InitFindWallSubHSM();
+            InitFollowWallSubHSM();
+            InitDepositSubHSM();
+            InitFollowTapeSubHSM();
+            InitZigZagSubHSM();
+            InitAvoidOpenSpaceSubHSM();
+            InitAvoidGoLeftSubHSM();
+            InitAvoidGoRightSubHSM();
             // now put the machine into the actual initial state
             nextState = FindWall;
             makeTransition = TRUE;
@@ -172,7 +174,7 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         ThisEvent = RunFindWallSubHSM(ThisEvent);
         switch (ThisEvent.EventType)
         {
-        case WALL_ALIGNED:
+        case WALL_ALIGNED: // TODO: the sub hsm needs to throw this event but idk where it does
             SWITCH(FollowWall);
             break;
         case ES_TIMEOUT:

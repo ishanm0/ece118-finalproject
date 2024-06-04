@@ -105,10 +105,10 @@ static const char *EventNames[] = {
 #define TIMER1_RESP_FUNC PostMainHSM
 #define TIMER2_RESP_FUNC PostMainHSM
 #define TIMER3_RESP_FUNC PostMainHSM
-#define TIMER4_RESP_FUNC TIMER_UNUSED
-#define TIMER5_RESP_FUNC TIMER_UNUSED
-#define TIMER6_RESP_FUNC TIMER_UNUSED
-#define TIMER7_RESP_FUNC TIMER_UNUSED
+#define TIMER4_RESP_FUNC PostMainHSM
+#define TIMER5_RESP_FUNC PostMainHSM
+#define TIMER6_RESP_FUNC PostMainHSM
+#define TIMER7_RESP_FUNC PostMainHSM
 #define TIMER8_RESP_FUNC TIMER_UNUSED
 #define TIMER9_RESP_FUNC TIMER_UNUSED
 #define TIMER10_RESP_FUNC TIMER_UNUSED
@@ -130,6 +130,10 @@ static const char *EventNames[] = {
 #define COLLECT1_TIMER 1
 #define COLLECT2_TIMER 2
 #define NAV_TIMER 3
+#define Pivit_ROTATE_TIMER 4
+#define NAV_ROTATE_TIMER 5
+#define TAPE_TURN_TIMER 6
+#define DEPOSIT_TIMER 7
 
 
 /****************************************************************************/
