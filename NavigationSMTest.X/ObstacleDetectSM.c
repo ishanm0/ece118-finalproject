@@ -225,9 +225,6 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
         case RotateRight:
             switch (ThisEvent.EventType) {
                 case ES_ENTRY:
-                    //                    left(TURN_SPEED);
-                    //                    right(-TURN_SPEED);
-                    //ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS);
                     left(-TURN_SPEED);
                     right(TURN_SPEED);
                     break;
@@ -243,18 +240,13 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                         makeTransition = TRUE;
                     }
                     break;
-                    //                case ES_TIMEOUT:
-                    //                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
-                    //                        nextState = DriveForwardPreparingLeftTurn;
-                    //                        makeTransition = TRUE;
-                    //                    }
-                    //                    break;
                 case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_BL) {
                         nextState = DriveForwardPreparingLeftTurn;
                         makeTransition = TRUE;
                     }
                     break;
+                case ES_NO_EVENT:
                 default:
                     break;
             }
@@ -264,7 +256,6 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                 case ES_ENTRY:
                     left(TURN_SPEED);
                     right(-TURN_SPEED);
-                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, RIGHT_TANK_TURN_MS);
                     break;
                 case BUMPER_ON:
                     if (ThisEvent.EventParam & BUMPER_TRF) {
@@ -278,12 +269,13 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                         makeTransition = TRUE;
                     }
                     break;
-                case ES_TIMEOUT:
-                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BL) {
                         nextState = DriveForwardPreparingRightTurn;
                         makeTransition = TRUE;
                     }
                     break;
+                case ES_NO_EVENT:
                 default:
                     break;
             }
