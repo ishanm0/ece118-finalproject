@@ -28,7 +28,6 @@
       <itemPath>ES_Configure.h</itemPath>
       <itemPath>EventChecker.h</itemPath>
       <itemPath>NavigationTestHSM.h</itemPath>
-      <itemPath>PETERHSM.h</itemPath>
       <itemPath>Common.h</itemPath>
       <itemPath>DepositSubHSM.h</itemPath>
       <itemPath>FindWallSubHSM.h</itemPath>
@@ -66,7 +65,6 @@
       <itemPath>EventChecker.c</itemPath>
       <itemPath>ES_Main.c</itemPath>
       <itemPath>NavigationTestHSM.c</itemPath>
-      <itemPath>PETERHSM.c</itemPath>
       <itemPath>Common.c</itemPath>
       <itemPath>DepositSubHSM.c</itemPath>
       <itemPath>FindWallSubHSM.c</itemPath>
@@ -264,22 +262,6 @@
         </C32Global>
       </item>
       <item path="NavigationTestHSM.h" ex="true" overriding="false">
-        <C32>
-        </C32>
-        <C32-AR>
-        </C32-AR>
-        <C32-AS>
-        </C32-AS>
-        <C32-CO>
-        </C32-CO>
-        <C32-LD>
-        </C32-LD>
-        <C32CPP>
-        </C32CPP>
-        <C32Global>
-        </C32Global>
-      </item>
-      <item path="PETERHSM.c" ex="true" overriding="false">
         <C32>
         </C32>
         <C32-AR>

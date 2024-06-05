@@ -68,8 +68,8 @@ static const char *StateNames[] = {
 static MainHSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
-static uint8_t doneFlag = 0;
-static uint8_t wallTake2 = 0;
+static uint8_t collect1Timer = 0;
+static uint8_t collect2Timer = 0;
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -139,8 +139,8 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
 
     switch (CurrentState)
     {
-    case InitPState:                        // If current state is initial Pseudo State
-        if (ThisEvent.EventType == ES_INIT) // only respond to ES_Init
+    case InitPState:                                  // If current state is initial Pseudo State
+        if (ThisEvent.EventType == BATTERY_CONNECTED) // only respond to ES_Init
         {
             // this is where you would put any actions associated with the
             // transition from the initial pseudo-state into the actual
@@ -164,6 +164,7 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         {
             ES_Timer_InitTimer(GAME_TIMER, 2 * 60 * 1000);
             ES_Timer_InitTimer(COLLECT1_TIMER, 45 * 1000);
+            ES_Timer_InitTimer(COLLECT2_TIMER, 90 * 1000);
         }
         break;
 
@@ -180,8 +181,7 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == COLLECT1_TIMER)
             {
-                doneFlag++;
-                ES_Timer_InitTimer(COLLECT2_TIMER, 45 * 1000);
+                collect1Timer++;
             }
             break;
         case ES_NO_EVENT:
@@ -199,24 +199,23 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == COLLECT1_TIMER)
             {
-                doneFlag++;
-                if (!wallTake2)
-                {
-                    ES_Timer_InitTimer(COLLECT2_TIMER, 45 * 1000);
-                }
-                if (doneFlag == 2)
-                {
-                    doneFlag = 0;
-                    SWITCH((wallTake2 ? ZigZag : Deposit));
-                }
+                collect1Timer++;
+            }
+            if (ThisEvent.EventParam == COLLECT2_TIMER)
+            {
+                collect2Timer++;
             }
             break;
         case AT_DOOR_TAPE:
-            doneFlag++;
-            if (doneFlag == 2)
+            if (collect1Timer)
             {
-                doneFlag = 0;
-                SWITCH((wallTake2 ? ZigZag : Deposit));
+                SWITCH(Deposit);
+                collect1Timer = 0;
+            }
+            else if (collect2Timer)
+            {
+                SWITCH(ZigZag);
+                collect2Timer = 0;
             }
             break;
         case ES_NO_EVENT:
@@ -237,7 +236,7 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == COLLECT2_TIMER)
             {
-                doneFlag++;
+                collect2Timer++;
             }
             break;
         case ES_NO_EVENT:
@@ -255,13 +254,12 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == COLLECT2_TIMER)
             {
-                doneFlag++;
+                collect2Timer++;
             }
             break;
         case BUMPER_ON:
             if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF))
             {
-                wallTake2 = 1;
                 SWITCH(FollowWall);
             }
 
@@ -295,9 +293,9 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         ThisEvent = RunAvoidOpenSpaceSubHSM(ThisEvent);
         switch (ThisEvent.EventType)
         {
-            case ES_NO_EVENT:
-            default:
-                break;
+        case ES_NO_EVENT:
+        default:
+            break;
         }
         break;
     case AvoidGoLeft:
@@ -307,9 +305,9 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         ThisEvent = RunAvoidGoLeftSubHSM(ThisEvent);
         switch (ThisEvent.EventType)
         {
-            case ES_NO_EVENT:
-            default:
-                break;
+        case ES_NO_EVENT:
+        default:
+            break;
         }
         break;
     case AvoidGoRight:
@@ -319,9 +317,9 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         ThisEvent = RunAvoidGoRightSubHSM(ThisEvent);
         switch (ThisEvent.EventType)
         {
-            case ES_NO_EVENT:
-            default:
-                break;
+        case ES_NO_EVENT:
+        default:
+            break;
         }
         break;
     case GameOver:

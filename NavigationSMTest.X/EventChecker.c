@@ -314,6 +314,5 @@ uint8_t CheckWallSensors(void)
         }
         distRStatus = newRStatus;
     }
-    tapeState = newTapeState;
     return returnVal;
 }
