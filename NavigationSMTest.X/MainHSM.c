@@ -13,9 +13,6 @@
 #include "DepositSubHSM.h"
 #include "FollowTapeSubHSM.h"
 #include "ZigZagSubHSM.h"
-#include "AvoidOpenSpaceSubHSM.h"
-#include "AvoidGoLeftSubHSM.h"
-#include "AvoidGoRightSubHSM.h"
 
 /*******************************************************************************
  * PRIVATE #DEFINES                                                            *
@@ -151,9 +148,6 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             InitDepositSubHSM();
             InitFollowTapeSubHSM();
             InitZigZagSubHSM();
-            InitAvoidOpenSpaceSubHSM();
-            InitAvoidGoLeftSubHSM();
-            InitAvoidGoRightSubHSM();
             // now put the machine into the actual initial state
             nextState = FindWall;
             makeTransition = TRUE;
@@ -201,7 +195,7 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             {
                 collect1Timer++;
             }
-            if (ThisEvent.EventParam == COLLECT2_TIMER)
+            else if (ThisEvent.EventParam == COLLECT2_TIMER)
             {
                 collect2Timer++;
             }
@@ -281,42 +275,6 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
                 SWITCH(GameOver);
             }
             break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case AvoidOpenSpace:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunAvoidOpenSpaceSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case AvoidGoLeft:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunAvoidGoLeftSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case AvoidGoRight:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunAvoidGoRightSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
         case ES_NO_EVENT:
         default:
             break;

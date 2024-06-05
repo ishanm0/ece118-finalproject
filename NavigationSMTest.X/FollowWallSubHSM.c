@@ -7,6 +7,8 @@
 #include "BOARD.h"
 #include "MainHSM.h"
 #include "FollowWallSubHSM.h"
+#include "AvoidGoLeftSubHSM.h"
+#include "AvoidGoRightSubHSM.h"
 #include "Common.h"
 
 /*******************************************************************************
@@ -25,6 +27,8 @@ typedef enum
     GetFurtherFromWallLeft,
     TouchedWallLeft,
     TurnAtTapeLeft,
+    AvoidGoLeft,
+    AvoidGoRight,
 } FollowWallSubHSMState_t;
 
 static const char *StateNames[] = {
@@ -39,6 +43,8 @@ static const char *StateNames[] = {
     "GetFurtherFromWallLeft",
     "TouchedWallLeft",
     "TurnAtTapeLeft",
+    "AvoidGoLeft",
+    "AvoidGoRight",
 };
 
 /*******************************************************************************
@@ -115,6 +121,9 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             // transition from the initial pseudo-state into the actual
             // initial state
 
+            InitAvoidGoLeftSubHSM();
+            InitAvoidGoRightSubHSM();
+
             // now put the machine into the actual initial state
             nextState = DriveAlongWallRight;
             makeTransition = TRUE;
@@ -146,6 +155,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS))
             {
                 SWITCH(TouchedWallRight);
+            }
+            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoRight);
             }
             break;
         case TAPE_ON:
@@ -183,6 +196,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(TouchedWallRight);
             }
+            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoRight);
+            }
             break;
         case TAPE_ON:
             SWITCH(TurnAtTapeRight);
@@ -217,6 +234,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS))
             {
                 SWITCH(TouchedWallRight);
+            }
+            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoRight);
             }
             break;
         case TAPE_ON:
@@ -269,6 +290,12 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
         case TAPE_ON:
             SWITCH(TurnAtTapeRight);
             ThisEvent.EventType = AT_DOOR_TAPE;
+            break;
+        case BUMPER_ON:
+            if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoRight);
+            }
             break;
         case ES_NO_EVENT:
         default:
@@ -350,6 +377,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(TouchedWallLeft);
             }
+            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoLeft);
+            }
             break;
         case TAPE_ON:
             SWITCH(TurnAtTapeLeft);
@@ -385,6 +416,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(TouchedWallLeft);
             }
+            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoLeft);
+            }
             break;
         case TAPE_ON:
             SWITCH(TurnAtTapeLeft);
@@ -418,6 +453,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS))
             {
                 SWITCH(TouchedWallLeft);
+            }
+            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoLeft);
             }
             break;
         case TAPE_ON:
@@ -470,6 +509,12 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
         case TAPE_ON:
             SWITCH(TurnAtTapeLeft);
             break;
+        case BUMPER_ON:
+            if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
+            {
+                SWITCH(AvoidGoLeft);
+            }
+            break;
         case ES_NO_EVENT:
         default:
             break;
@@ -518,6 +563,49 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             {
                 wallStatus = 0;
             }
+            break;
+        case ES_NO_EVENT:
+        default:
+            break;
+        }
+        break;
+
+    case AvoidGoLeft:
+        // run sub-state machine for this state
+        // NOTE: the SubState Machine runs and responds to events before anything in the this
+        // state machine does
+        ThisEvent = RunAvoidGoLeftSubHSM(ThisEvent);
+        switch (ThisEvent.EventType)
+        {
+        case BUMPER_ON:
+            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS | BUMPER_BRF | BUMPER_BRS))
+            {
+                SWITCH(TouchedWallLeft);
+            }
+            break;
+        case TAPE_ON:
+            SWITCH(TurnAtTapeLeft);
+            break;
+        case ES_NO_EVENT:
+        default:
+            break;
+        }
+        break;
+    case AvoidGoRight:
+        // run sub-state machine for this state
+        // NOTE: the SubState Machine runs and responds to events before anything in the this
+        // state machine does
+        ThisEvent = RunAvoidGoRightSubHSM(ThisEvent);
+        switch (ThisEvent.EventType)
+        {
+        case BUMPER_ON:
+            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS | BUMPER_BRF | BUMPER_BRS))
+            {
+                SWITCH(TouchedWallRight);
+            }
+            break;
+        case TAPE_ON:
+            SWITCH(TurnAtTapeRight);
             break;
         case ES_NO_EVENT:
         default:

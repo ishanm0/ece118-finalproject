@@ -26,7 +26,6 @@ typedef enum
     smack,
     reajust,
     LeftMove,
-    Stop,
 } FollowTapeSubHSMState_t;
 
 static const char *StateNames[] = {
@@ -41,7 +40,6 @@ static const char *StateNames[] = {
     "smack",
     "reajust",
     "LeftMove",
-    "Stop",
 };
 
 /*******************************************************************************
@@ -138,7 +136,7 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(REVERSEBACK);
             }
-            if (ThisEvent.EventParam & BUMPER_TRF)
+            else if (ThisEvent.EventParam & BUMPER_TRF)
             {
                 SWITCH(REVERSEBACK);
             }
@@ -161,7 +159,7 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(forwardLeft);
             }
-            if (ThisEvent.EventParam & TAPE_FR)
+            else if (ThisEvent.EventParam & TAPE_FR)
             {
                 SWITCH(QCW);
             }
@@ -177,13 +175,12 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(REVERSEBACK);
             }
-            if (ThisEvent.EventParam & BUMPER_TRF)
+            else if (ThisEvent.EventParam & BUMPER_TRF)
             {
                 SWITCH(REVERSEBACK);
             }
             break;
         case ES_NO_EVENT:
-
         default:
             break;
         }
@@ -201,7 +198,7 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(forwardRight);
             }
-            if (ThisEvent.EventParam & TAPE_FR)
+            else if (ThisEvent.EventParam & TAPE_FR)
             {
                 SWITCH(QCW);
             }
@@ -217,7 +214,7 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             {
                 SWITCH(REVERSEBACK);
             }
-            if (ThisEvent.EventParam & BUMPER_TRF)
+            else if (ThisEvent.EventParam & BUMPER_TRF)
             {
                 SWITCH(REVERSEBACK);
             }
@@ -238,7 +235,10 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 700);
             break;
         case ES_TIMEOUT:
-            SWITCH(pause);
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
+            {
+                SWITCH(pause);
+            }
             break;
         case ES_NO_EVENT:
         default:
@@ -255,13 +255,16 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 100);
             break;
         case ES_TIMEOUT:
-            if ((IO_PortsReadPort(PORTZ) & PIN12))
-            { // left side on tape
-                SWITCH(forwardLeft);
-            }
-            else
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
             {
-                SWITCH(forwardRight); // left side not on tape
+                if ((IO_PortsReadPort(PORTZ) & PIN12))
+                { // left side on tape
+                    SWITCH(forwardLeft);
+                }
+                else
+                {
+                    SWITCH(forwardRight); // left side not on tape
+                }
             }
             break;
         case ES_NO_EVENT:
@@ -279,7 +282,10 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
             break;
         case ES_TIMEOUT:
-            SWITCH(smack);
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
+            {
+                SWITCH(smack);
+            }
             break;
         case ES_NO_EVENT:
         default:
@@ -301,7 +307,7 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
                 SWITCH(REVERSEBACK);
                 ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
             }
-            if (ThisEvent.EventParam & BUMPER_TLF)
+            else if (ThisEvent.EventParam & BUMPER_TLF)
             {
                 SWITCH(REVERSEBACK);
                 ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
@@ -311,11 +317,14 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             if (ThisEvent.EventParam & TAPE_FL)
             {
                 SWITCH(LeftMove);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
             }
-
             break;
         case ES_TIMEOUT:
-            SWITCH(reajust);
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
+            {
+                SWITCH(reajust);
+            }
             break;
         case ES_NO_EVENT:
         default:
@@ -332,24 +341,30 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 600);
             break;
         case ES_TIMEOUT:
-            SWITCH(REVERSEBACK);
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
+            {
+                SWITCH(REVERSEBACK);
+            }
             break;
         case TAPE_ON:
             if (ThisEvent.EventParam & TAPE_FL)
             {
                 SWITCH(LeftMove);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
             }
-            if (ThisEvent.EventParam & TAPE_FR)
+            else if (ThisEvent.EventParam & TAPE_FR)
             {
                 SWITCH(LeftMove);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
             }
-
             break;
         case BUMPER_ON:
             if (ThisEvent.EventParam & BUMPER_TRF)
             {
                 SWITCH(REVERSEBACK);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
             }
+            break;
         case ES_NO_EVENT:
         default:
             break;
@@ -369,56 +384,16 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             if (ThisEvent.EventParam & TAPE_BL)
             {
                 SWITCH(pause);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
             }
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-    case Stop:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            printf("Stop\r\n");
-            left(0);
-            right(0);
             break;
         case ES_NO_EVENT:
         default:
             break;
         }
-        break;
     default: // all unhandled states fall into here
         break;
     } // end switch on Current State
-
-    // switch (CurrentState)
-    // {
-    // case InitPSubState:                     // If current state is initial Psedudo State
-    //     if (ThisEvent.EventType == ES_INIT) // only respond to ES_Init
-    //     {
-    //         // this is where you would put any actions associated with the
-    //         // transition from the initial pseudo-state into the actual
-    //         // initial state
-
-    //         // now put the machine into the actual initial state
-    //         nextState = SubFirstState;
-    //         makeTransition = TRUE;
-    //         ThisEvent.EventType = ES_NO_EVENT;
-    //     }
-    //     break;
-
-    // case SubFirstState: // in the first state, replace this with correct names
-    //     switch (ThisEvent.EventType)
-    //     {
-    //     case ES_NO_EVENT:
-    //     default: // all unhandled events pass the event back up to the next level
-    //         break;
-    //     }
-    //     break;
-
-    // default: // all unhandled states fall into here
-    //     break;
-    // } // end switch on Current State
 
     if (makeTransition == TRUE)
     { // making a state transition, send EXIT and ENTRY

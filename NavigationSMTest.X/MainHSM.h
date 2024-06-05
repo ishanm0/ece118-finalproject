@@ -4,7 +4,7 @@
  * Modified: Gabriel H Elkaim
  *
  * Template file to set up a Heirarchical State Machine to work with the Events and
- * Services Framework (ES_Framework) on the Uno32 for the CMPE-118/L class. Note that 
+ * Services Framework (ES_Framework) on the Uno32 for the CMPE-118/L class. Note that
  * this file will need to be modified to fit your exact needs, and most of the names
  * will have to be changed to match your code.
  *
@@ -17,25 +17,22 @@
  * Updated on 16/Sep/2013
  */
 
-#ifndef HSM_Template_H  // <- This should be changed to your own guard on both
-#define HSM_Template_H  //    of these lines
-
+#ifndef HSM_Template_H // <- This should be changed to your own guard on both
+#define HSM_Template_H //    of these lines
 
 /*******************************************************************************
  * PUBLIC #INCLUDES                                                            *
  ******************************************************************************/
 
-#include "ES_Configure.h"   // defines ES_Event, INIT_EVENT, ENTRY_EVENT, and EXIT_EVENT
+#include "ES_Configure.h" // defines ES_Event, INIT_EVENT, ENTRY_EVENT, and EXIT_EVENT
 
 /*******************************************************************************
  * PUBLIC #DEFINES                                                             *
  ******************************************************************************/
 
-
 /*******************************************************************************
  * PUBLIC TYPEDEFS                                                             *
  ******************************************************************************/
-
 
 /*******************************************************************************
  * PUBLIC FUNCTION PROTOTYPES                                                  *
@@ -53,7 +50,6 @@
  * @author J. Edward Carryer, 2011.10.23 19:25 */
 uint8_t InitMainHSM(uint8_t Priority);
 
-
 /**
  * @Function PostTemplateHSM(ES_Event ThisEvent)
  * @param ThisEvent - the event (type and param) to be posted to queue
@@ -64,9 +60,6 @@ uint8_t InitMainHSM(uint8_t Priority);
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
 uint8_t PostMainHSM(ES_Event ThisEvent);
-
-
-
 
 /**
  * @Function RunTemplateHSM(ES_Event ThisEvent)
@@ -85,5 +78,6 @@ uint8_t PostMainHSM(ES_Event ThisEvent);
  * @author Gabriel H Elkaim, 2011.10.23 19:25 */
 ES_Event RunMainHSM(ES_Event ThisEvent);
 
-#endif /* HSM_Template_H */
+void changeWallFollowDirection(int newDir);
 
+#endif /* HSM_Template_H */

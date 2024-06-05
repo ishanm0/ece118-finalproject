@@ -37,7 +37,6 @@
       <itemPath>ZigZagSubHSM.h</itemPath>
       <itemPath>AvoidGoLeftSubHSM.h</itemPath>
       <itemPath>AvoidGoRightSubHSM.h</itemPath>
-      <itemPath>AvoidOpenSpaceSubHSM.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -74,7 +73,6 @@
       <itemPath>ZigZagSubHSM.c</itemPath>
       <itemPath>AvoidGoLeftSubHSM.c</itemPath>
       <itemPath>AvoidGoRightSubHSM.c</itemPath>
-      <itemPath>AvoidOpenSpaceSubHSM.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

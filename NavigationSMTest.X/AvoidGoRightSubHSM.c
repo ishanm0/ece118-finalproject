@@ -22,7 +22,6 @@
  * 10/23/11 18:20 jec      began conversion from SMTemplate.c (02/20/07 rev)
  */
 
-
 /*******************************************************************************
  * MODULE #INCLUDE                                                             *
  ******************************************************************************/
@@ -31,22 +30,27 @@
 #include "ES_Framework.h"
 #include "BOARD.h"
 #include "MainHSM.h"
+#include "FollowWallSubHSM.h"
 #include "AvoidGoRightSubHSM.h"
+#include "Common.h"
 
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
-typedef enum {
+typedef enum
+{
     InitPSubState,
-    SubFirstState,
+    ReverseBack,
+    Smack,
+    Readjust
 } AvoidGoRightSubHSMState_t;
 
 static const char *StateNames[] = {
-	"InitPSubState",
-	"SubFirstState",
+    "InitPSubState",
+    "ReverseBack",
+    "Smack",
+    "Readjust",
 };
-
-
 
 /*******************************************************************************
  * PRIVATE FUNCTION PROTOTYPES                                                 *
@@ -62,7 +66,6 @@ static const char *StateNames[] = {
 
 static AvoidGoRightSubHSMState_t CurrentState = InitPSubState; // <- change name to match ENUM
 static uint8_t MyPriority;
-
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -84,7 +87,8 @@ uint8_t InitAvoidGoRightSubHSM(void)
 
     CurrentState = InitPSubState;
     returnEvent = RunAvoidGoRightSubHSM(INIT_EVENT);
-    if (returnEvent.EventType == ES_NO_EVENT) {
+    if (returnEvent.EventType == ES_NO_EVENT)
+    {
         return TRUE;
     }
     return FALSE;
@@ -107,39 +111,112 @@ uint8_t InitAvoidGoRightSubHSM(void)
  * @author Gabriel H Elkaim, 2011.10.23 19:25 */
 ES_Event RunAvoidGoRightSubHSM(ES_Event ThisEvent)
 {
-    uint8_t makeTransition = FALSE; // use to flag transition
+    uint8_t makeTransition = FALSE;      // use to flag transition
     AvoidGoRightSubHSMState_t nextState; // <- change type to correct enum
 
     ES_Tattle(); // trace call stack
 
-    switch (CurrentState) {
-    case InitPSubState: // If current state is initial Psedudo State
-        if (ThisEvent.EventType == ES_INIT)// only respond to ES_Init
+    switch (CurrentState)
+    {
+    case InitPSubState:                     // If current state is initial Psedudo State
+        if (ThisEvent.EventType == ES_INIT) // only respond to ES_Init
         {
             // this is where you would put any actions associated with the
             // transition from the initial pseudo-state into the actual
             // initial state
 
             // now put the machine into the actual initial state
-            nextState = SubFirstState;
+            nextState = ReverseBack;
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
         }
         break;
 
-    case SubFirstState: // in the first state, replace this with correct names
-        switch (ThisEvent.EventType) {
+    case ReverseBack: // in the first state, replace this with correct names
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            left(-800);
+            right(-1000);
+            ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
+            break;
+        case ES_TIMEOUT:
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
+            {
+                SWITCH(Smack);
+            }
+            break;
         case ES_NO_EVENT:
         default: // all unhandled events pass the event back up to the next level
             break;
         }
         break;
-        
+
+    case Smack:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            left(1000);
+            right(1000);
+            ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 350);
+            break;
+        case BUMPER_ON:
+            if (ThisEvent.EventParam & BUMPER_TRF)
+            {
+                SWITCH(ReverseBack);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
+            }
+            else if (ThisEvent.EventParam & BUMPER_TLF)
+            {
+                SWITCH(ReverseBack);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
+            }
+            break;
+        case ES_TIMEOUT:
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
+            {
+                SWITCH(Readjust);
+            }
+            break;
+        case ES_NO_EVENT:
+        default: // all unhandled events pass the event back up to the next level
+            break;
+        }
+        break;
+
+    case Readjust:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            left(0);
+            right(1000);
+            ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 600);
+            break;
+        case ES_TIMEOUT:
+            if (ThisEvent.EventParam == Pivit_ROTATE_TIMER)
+            {
+                SWITCH(ReverseBack);
+            }
+            break;
+        case BUMPER_ON:
+            if (ThisEvent.EventParam & (BUMPER_TRF | BUMPER_TLF))
+            {
+                SWITCH(ReverseBack);
+                ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
+            }
+            break;
+        case ES_NO_EVENT:
+        default: // all unhandled events pass the event back up to the next level
+            break;
+        }
+        break;
+
     default: // all unhandled states fall into here
         break;
     } // end switch on Current State
 
-    if (makeTransition == TRUE) { // making a state transition, send EXIT and ENTRY
+    if (makeTransition == TRUE)
+    { // making a state transition, send EXIT and ENTRY
         // recursively call the current state with an exit event
         RunAvoidGoRightSubHSM(EXIT_EVENT); // <- rename to your own Run function
         CurrentState = nextState;
@@ -150,8 +227,6 @@ ES_Event RunAvoidGoRightSubHSM(ES_Event ThisEvent)
     return ThisEvent;
 }
 
-
 /*******************************************************************************
  * PRIVATE FUNCTIONS                                                           *
  ******************************************************************************/
-
