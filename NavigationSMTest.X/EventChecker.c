@@ -9,6 +9,7 @@
 #include "AD.h"
 
 // #include "TemplateService.h"
+// #include "NavigationTestHSM.h"
 #include "ObstacleDetectSM.h"
 #include <stdio.h>
 #include "IO_Ports.h"
@@ -21,8 +22,13 @@
 #define BUMPER_PORT PORTZ
 #define NUM_CHECKS 5
 
-//#define right;
-//#define left;
+#define WALL_DIST_CLOSE_MAX 40
+#define WALL_DIST_IN_RANGE_MIN 60
+#define WALL_DIST_IN_RANGE_MAX 500
+#define WALL_DIST_FAR_MIN 550
+
+#define WALL_DIST_L_PORT AD_PORTV5
+#define WALL_DIST_R_PORT AD_PORTV4
 
 /*******************************************************************************
  * EVENTCHECKER_TEST SPECIFIC CODE                                                             *
@@ -52,6 +58,8 @@ static uint8_t bumperState;
 static uint8_t bumperBuffer[NUM_CHECKS];
 static uint8_t idx;
 static uint16_t tapeState = 0;
+static int distLStatus = 0;
+static int distRStatus = 0;
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -71,25 +79,31 @@ static uint16_t tapeState = 0;
  * @note Use this code as a template for your other event checkers, and modify as necessary.
  * @author Gabriel H Elkaim, 2013.09.27 09:18
  * @modified Gabriel H Elkaim/Max Dunne, 2016.09.12 20:08 */
-uint8_t TemplateCheckBattery(void) {
+uint8_t TemplateCheckBattery(void)
+{
     static ES_EventTyp_t lastEvent = BATTERY_DISCONNECTED;
     ES_EventTyp_t curEvent;
     ES_Event thisEvent;
     uint8_t returnVal = FALSE;
     uint16_t batVoltage = AD_ReadADPin(BAT_VOLTAGE); // read the battery voltage
 
-    if (batVoltage > BATTERY_DISCONNECT_THRESHOLD) { // is battery connected?
+    if (batVoltage > BATTERY_DISCONNECT_THRESHOLD)
+    { // is battery connected?
         curEvent = BATTERY_CONNECTED;
-    } else {
+    }
+    else
+    {
         curEvent = BATTERY_DISCONNECTED;
     }
-    if (curEvent != lastEvent) { // check for change from last time
+    if (curEvent != lastEvent)
+    { // check for change from last time
         thisEvent.EventType = curEvent;
         thisEvent.EventParam = batVoltage;
         returnVal = TRUE;
         lastEvent = curEvent; // update history
 #ifndef EVENTCHECKER_TEST     // keep this as is for test harness
         PostObstacleDetectSM(thisEvent);
+        // PostNavigationTestHSM(thisEvent);
         // PostPETERHSM(thisEvent);
 #else
         SaveEvent(thisEvent);
@@ -100,7 +114,8 @@ uint8_t TemplateCheckBattery(void) {
 
 // static uint16_t bumperState = 0;
 
-uint8_t CheckBumpers(void) {
+uint8_t CheckBumpers(void)
+{
     uint8_t returnVal = FALSE;
     ES_Event thisEvent;
     uint16_t newBumperState = IO_PortsReadPort(BUMPER_PORT) >> 3;
@@ -114,7 +129,8 @@ uint8_t CheckBumpers(void) {
     bumperBuffer[idx] = newBumperState;
     idx = (idx + 1) % NUM_CHECKS;
 
-    for (int i = 0; i < NUM_CHECKS; i++) {
+    for (int i = 0; i < NUM_CHECKS; i++)
+    {
         j &= bumperBuffer[i];
     }
 
@@ -122,86 +138,181 @@ uint8_t CheckBumpers(void) {
 
     // printf(" %x", newBumperState);
 
-    if (newBumperState != bumperState) {
+    if (newBumperState != bumperState)
+    {
         uint16_t xor = newBumperState ^ bumperState;
-        if (xor & bumperState) {
+        if (xor&bumperState)
+        {
             // any high bit represents a bumper that was released
             thisEvent.EventType = BUMPER_OFF;
             thisEvent.EventParam = xor&bumperState;
             returnVal = TRUE;
             PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
-        if (xor & newBumperState) {
+        if (xor&newBumperState)
+        {
             // any high bit represents a bumper that was pressed
             thisEvent.EventType = BUMPER_ON;
             thisEvent.EventParam = xor&newBumperState;
             returnVal = TRUE;
             PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
+        bumperState = newBumperState;
     }
     bumperState = newBumperState;
     return returnVal;
 }
 
-//uint8_t CheckWallSensors(void) {
-//    uint8_t returnVal = FALSE;
-//    ES_Event thisEvent;
-//    unsigned int rightSide = AD_ReadADPin(AD_PORTV4);
-//    unsigned int leftSide = AD_ReadADPin(AD_PORTV5);
-//
-//    if (rightSide <= 500) {
-//        thisEvent.EventParam = right;
-//        thisEvent.EventType = WALL_CLOSE;
-//        returnVal = TRUE;
-//        PostObstacleDetectSM(thisEvent);
-//    }
-//    if (rightSide > 500) {
-//        thisEvent.EventParam = right;
-//        thisEvent.EventType = WALL_FAR;
-//        returnVal = TRUE;
-//        PostObstacleDetectSM(thisEvent);
-//    }
-//    if (leftSide <= 500) {
-//        thisEvent.EventParam = left;
-//        thisEvent.EventType = WALL_CLOSE;
-//        returnVal = TRUE;
-//        PostObstacleDetectSM(thisEvent);
-//    }
-//    if (leftSide > 500) {
-//        thisEvent.EventParam = left;
-//        thisEvent.EventType = WALL_FAR;
-//        returnVal = TRUE;
-//        PostObstacleDetectSM(thisEvent);
-//    }
-//    return returnVal;
-//}
-
-uint8_t CheckTapeSensors(void) {
+uint8_t CheckTapeSensors(void)
+{
     uint8_t returnVal = FALSE;
     ES_Event thisEvent;
     uint16_t newTapeState = (IO_PortsReadPort(PORTX) & PIN4) >> 4; // shift from bit_4 to bit_0
-    newTapeState |= (IO_PortsReadPort(PORTY) & PIN9) >> (9 - 1); // shift from bit_9 to bit_1
+    newTapeState |= (IO_PortsReadPort(PORTY) & PIN9) >> (9 - 1);   // shift from bit_9 to bit_1
     newTapeState |= (IO_PortsReadPort(PORTY) & PIN11) >> (11 - 2); // etc
     newTapeState |= (IO_PortsReadPort(PORTZ) & PIN12) >> (12 - 3);
     newTapeState &= 0xf; // mask off the unused bits - only 4 bits are used
 
-    if (newTapeState != tapeState) {
+    if (newTapeState != tapeState)
+    {
         uint16_t xor = newTapeState ^ tapeState;
-        if (xor & tapeState) {
+        if (xor&tapeState)
+        {
             // any high bit represents a tape sensor that is now off tape
             thisEvent.EventParam = xor&tapeState;
             thisEvent.EventType = TAPE_OFF;
             returnVal = TRUE;
             PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
-        if (xor & newTapeState) {
+        if (xor&newTapeState)
+        {
             // any high bit represents a tape sensor that is now on tape
             thisEvent.EventParam = xor&newTapeState;
             thisEvent.EventType = TAPE_ON;
             returnVal = TRUE;
             PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
         }
+        tapeState = newTapeState;
     }
-    tapeState = newTapeState;
+    return returnVal;
+}
+
+uint8_t CheckWallSensors(void)
+{
+    if (!(AD_IsNewDataReady()))
+    {
+        return FALSE;
+    }
+    uint8_t returnVal = FALSE;
+    ES_Event thisEvent;
+    uint16_t distL = AD_ReadADPin(WALL_DIST_L_PORT);
+    uint16_t distR = AD_ReadADPin(WALL_DIST_R_PORT);
+
+    int newLStatus = 0;
+    int newRStatus = 0;
+
+    if (distLStatus == 0 && distL < WALL_DIST_CLOSE_MAX)
+    {
+        newLStatus = -1;
+    }
+    else if (distLStatus == -1 && distL > WALL_DIST_IN_RANGE_MIN)
+    {
+        newLStatus = 0;
+    }
+    else if (distLStatus == 0 && distL > WALL_DIST_FAR_MIN)
+    {
+        newLStatus = 1;
+    }
+    else if (distLStatus == 1 && distL < WALL_DIST_IN_RANGE_MAX)
+    {
+        newLStatus = 0;
+    }
+    else
+    {
+        newLStatus = distLStatus;
+    }
+
+    if (distRStatus == 0 && distR < WALL_DIST_CLOSE_MAX)
+    {
+        newRStatus = -1;
+    }
+    else if (distRStatus == -1 && distR > WALL_DIST_IN_RANGE_MIN)
+    {
+        newRStatus = 0;
+    }
+    else if (distRStatus == 0 && distR > WALL_DIST_FAR_MIN)
+    {
+        newRStatus = 1;
+    }
+    else if (distRStatus == 1 && distR < WALL_DIST_IN_RANGE_MAX)
+    {
+        newRStatus = 0;
+    }
+    else
+    {
+        newRStatus = distRStatus;
+    }
+
+    if (newLStatus != distLStatus)
+    {
+        if (newLStatus == -1)
+        {
+            thisEvent.EventType = WALL_CLOSE;
+            thisEvent.EventParam = BIT_0;
+            returnVal = TRUE;
+            PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else if (newLStatus == 1)
+        {
+            thisEvent.EventType = WALL_FAR;
+            thisEvent.EventParam = BIT_0;
+            returnVal = TRUE;
+            PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else
+        {
+            thisEvent.EventType = WALL_IN_RANGE;
+            thisEvent.EventParam = BIT_0;
+            returnVal = TRUE;
+            PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        distLStatus = newLStatus;
+    }
+
+    if (newRStatus != distRStatus)
+    {
+        if (newRStatus == -1)
+        {
+            thisEvent.EventType = WALL_CLOSE;
+            thisEvent.EventParam = BIT_1;
+            returnVal = TRUE;
+            PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else if (newRStatus == 1)
+        {
+            thisEvent.EventType = WALL_FAR;
+            thisEvent.EventParam = BIT_1;
+            returnVal = TRUE;
+            PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        else
+        {
+            thisEvent.EventType = WALL_IN_RANGE;
+            thisEvent.EventParam = BIT_1;
+            returnVal = TRUE;
+            PostObstacleDetectSM(thisEvent);
+            // PostNavigationTestHSM(thisEvent);
+        }
+        distRStatus = newRStatus;
+    }
     return returnVal;
 }

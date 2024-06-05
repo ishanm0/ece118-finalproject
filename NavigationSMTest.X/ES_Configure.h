@@ -53,6 +53,9 @@ typedef enum {
     WALL_CLOSE,
     WALL_FAR,
     WALL_IN_RANGE,
+    WALL_ALIGNED,
+    AT_DOOR_TAPE,
+    DEPOSIT_DONE,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
@@ -76,11 +79,11 @@ static const char *EventNames[] = {
 	"WALL_CLOSE",
 	"WALL_FAR",
 	"WALL_IN_RANGE",
+	"WALL_ALIGNED",
+	"AT_DOOR_TAPE",
+	"DEPOSIT_DONE",
 	"NUMBEROFEVENTS",
 };
-
-
-
 
 /****************************************************************************/
 // This are the name of the Event checking function header file.
@@ -88,7 +91,7 @@ static const char *EventNames[] = {
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST  TemplateCheckBattery, CheckBumpers, CheckTapeSensors
+#define EVENT_CHECK_LIST  TemplateCheckBattery, CheckBumpers, CheckTapeSensors, CheckWallSensors,
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the

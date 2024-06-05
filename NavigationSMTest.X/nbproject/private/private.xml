@@ -4,11 +4,10 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/NavigationSMTest.X/ObstacleDetectSM.c</file>
-            <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/NavigationSMTest.X/TapeService.h</file>
-            <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/NavigationSMTest.X/TapeService.c</file>
+            <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/NavigationSMTest.X/EventChecker.h</file>
+            <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/NavigationSMTest.X/ES_Configure.h</file>
             <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/NavigationSMTest.X/ES_Main.c</file>
             <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/NavigationSMTest.X/EventChecker.c</file>
-            <file>file:/C:/Users/yafit/OneDrive/Desktop/ece118-finalproject/ECE118/src/IO_Ports.c</file>
         </group>
     </open-files>
 </project-private>
