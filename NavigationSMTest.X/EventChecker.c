@@ -13,22 +13,14 @@
 #include "MainHSM.h"
 #include <stdio.h>
 #include "IO_Ports.h"
+#include "Common.h"
 
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
 #define BATTERY_DISCONNECT_THRESHOLD 175
 
-#define BUMPER_PORT PORTZ
 #define NUM_CHECKS 5
-
-#define WALL_DIST_CLOSE_MAX 40
-#define WALL_DIST_IN_RANGE_MIN 60
-#define WALL_DIST_IN_RANGE_MAX 500
-#define WALL_DIST_FAR_MIN 550
-
-#define WALL_DIST_L_PORT AD_PORTV5
-#define WALL_DIST_R_PORT AD_PORTV4
 
 /*******************************************************************************
  * EVENTCHECKER_TEST SPECIFIC CODE                                                             *

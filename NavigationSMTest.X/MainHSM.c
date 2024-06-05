@@ -30,6 +30,7 @@ typedef enum
     FollowWall,
     Deposit,
     FollowTape,
+    RealignToWall,
     ZigZag,
     AvoidOpenSpace,
     AvoidGoLeft,
@@ -43,6 +44,7 @@ static const char *StateNames[] = {
     "FollowWall",
     "Deposit",
     "FollowTape",
+    "RealignToWall",
     "ZigZag",
     "AvoidOpenSpace",
     "AvoidGoLeft",
@@ -150,13 +152,14 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             InitZigZagSubHSM();
             // now put the machine into the actual initial state
             nextState = FindWall;
+            //            nextState = GameOver;
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
         }
         else if (ThisEvent.EventType == ES_EXIT)
         {
             ES_Timer_InitTimer(GAME_TIMER, 2 * 60 * 1000);
-            ES_Timer_InitTimer(COLLECT1_TIMER, 45 * 1000);
+            ES_Timer_InitTimer(COLLECT1_TIMER, 5 * 1000);
             ES_Timer_InitTimer(COLLECT2_TIMER, 90 * 1000);
         }
         break;
@@ -253,15 +256,50 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         case BUMPER_ON:
             if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF))
             {
-                SWITCH(FollowWall);
-                InitFollowWallSubHSM();
+                SWITCH(RealignToWall);
             }
-
         case ES_NO_EVENT:
         default:
             break;
         }
         break;
+    case RealignToWall:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            left(0);
+            right(-TURN_SPEED);
+            ES_Timer_InitTimer(NAV_TIMER, 600);
+            break;
+        case ES_TIMEOUT:
+            if (ThisEvent.EventParam == NAV_TIMER)
+            {
+                uint16_t distL = AD_ReadADPin(WALL_DIST_L_PORT);
+                if (distL < WALL_DIST_IN_RANGE_MIN)
+                {
+                    setWallStatus(-1);
+                }
+                else if (distL > WALL_DIST_IN_RANGE_MAX)
+                {
+                    setWallStatus(1);
+                }
+                else
+                {
+                    setWallStatus(0);
+                }
+
+                InitFollowWallSubHSM();
+                SWITCH(FollowWall);
+            }
+            else if (ThisEvent.EventParam == COLLECT2_TIMER)
+            {
+                collect2Timer++;
+            }
+            break;
+        case ES_NO_EVENT:
+        default:
+            break;
+        }
     case ZigZag:
         // run sub-state machine for this state
         // NOTE: the SubState Machine runs and responds to events before anything in the this

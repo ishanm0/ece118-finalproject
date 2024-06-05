@@ -125,10 +125,14 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
             right(800);
             break;
         case TAPE_ON:
-            if (ThisEvent.EventParam & TAPE_FL)
-            {
-                SWITCH(forwardLeft);
-            }
+            if ((IO_PortsReadPort(PORTZ) & PIN12))
+                { // left side on tape
+                    SWITCH(forwardLeft);
+                }
+                else
+                {
+                    SWITCH(forwardRight); // left side not on tape
+                }
             break;
         case BUMPER_ON:
             if (ThisEvent.EventParam & BUMPER_TLF)

@@ -4,6 +4,7 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "BOARD.h"
+#include "AD.h"
 #include <stdio.h>
 
 #define BUMPER_BLF BIT_0 // bottom left front
@@ -27,23 +28,35 @@
 #define DRIVE_SPEED 1000
 #define TURN_SPEED 800
 
-#define RIGHT_TANK_TURN_MS 700
+#define RIGHT_TANK_TURN_MS 600
 #define RIGHT_ONEWHEEL_TURN_MS 800
-#define BACK_FROM_TAPE_MS 100
+#define BACK_FROM_TAPE_MS 300
 #define BACK_TO_DOOR_MS 1000
-#define FRONT_FROM_DOOR_MS 100
+#define FRONT_FROM_DOOR_MS 150
 #define TAPE_TURN_TIME 1000
 #define DEPOSIT_TIME 1000
+#define PAUSE_TIME 200
 
 #define WALL_DIST_SPEED_FACTOR 0.8
 
 #define LEFT_FACTOR 1
 #define RIGHT_FACTOR 1
 
-#define SWITCH(x)          \
-    nextState = x;         \
-    makeTransition = TRUE; \
-    ThisEvent.EventType = ES_NO_EVENT;
+#define BUMPER_PORT PORTZ
+
+#define WALL_DIST_CLOSE_MAX 40
+#define WALL_DIST_IN_RANGE_MIN 60
+#define WALL_DIST_IN_RANGE_MAX 500
+#define WALL_DIST_FAR_MIN 550
+
+#define WALL_DIST_L_PORT AD_PORTV5
+#define WALL_DIST_R_PORT AD_PORTV4
+
+#define SWITCH(x)                      \
+    nextState = x;                     \
+    makeTransition = TRUE;             \
+    ThisEvent.EventType = ES_NO_EVENT; \
+    printf("\r\nTransitioning to %s", StateNames[x]);
 
 void left(int speed);
 void right(int speed);

@@ -141,9 +141,12 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
                 }
                 else
                 {
-                    left(DRIVE_SPEED);
-                    right(DRIVE_SPEED);
+                    SWITCH(BackFromTape);
                 }
+            }
+            else
+            {
+                initCount++;
             }
             break;
         case TAPE_ON:
@@ -284,7 +287,8 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
             ES_Timer_InitTimer(DEPOSIT_TIMER, DEPOSIT_TIME);
             break;
         case ES_TIMEOUT:
-            if (ThisEvent.EventParam == DEPOSIT_TIMER) {
+            if (ThisEvent.EventParam == DEPOSIT_TIMER)
+            {
                 ThisEvent.EventType = DEPOSIT_DONE;
                 door(FALSE);
             }

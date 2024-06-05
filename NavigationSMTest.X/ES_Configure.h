@@ -23,10 +23,10 @@
 //#define POSTFUNCTION_FOR_KEYBOARD_INPUT PostGenericService
 
 //define for TattleTale
-#define USE_TATTLETALE
+// #define USE_TATTLETALE
 
 //uncomment to supress the entry and exit events
-#define SUPPRESS_EXIT_ENTRY_IN_TATTLE
+// #define SUPPRESS_EXIT_ENTRY_IN_TATTLE
 
 /****************************************************************************/
 // Name/define the events of interest

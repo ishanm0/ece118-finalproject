@@ -21,6 +21,7 @@ typedef enum
     GetCloserToWallRight,
     GetFurtherFromWallRight,
     TouchedWallRight,
+    PauseRight,
     TurnAtTapeRight,
     DriveAlongWallLeft,
     GetCloserToWallLeft,
@@ -37,6 +38,7 @@ static const char *StateNames[] = {
     "GetCloserToWallRight",
     "GetFurtherFromWallRight",
     "TouchedWallRight",
+    "PauseRight",
     "TurnAtTapeRight",
     "DriveAlongWallLeft",
     "GetCloserToWallLeft",
@@ -135,9 +137,20 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
         switch (ThisEvent.EventType)
         {
         case ES_ENTRY:
-            left(DRIVE_SPEED);
-            right(DRIVE_SPEED);
-            wallStatus = 0;
+            if (wallStatus > 1)
+            {
+                SWITCH(GetCloserToWallRight);
+            }
+            else if (wallStatus < -1)
+            {
+                SWITCH(GetFurtherFromWallRight);
+            }
+            else
+            {
+                left(DRIVE_SPEED);
+                right(DRIVE_SPEED);
+                wallStatus = 0;
+            }
             break;
         case WALL_FAR:
             if (ThisEvent.EventParam & WALL_LEFT)
@@ -162,8 +175,11 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(PauseRight);
+                ThisEvent.EventType = AT_DOOR_TAPE;
+            }
             break;
         case ES_NO_EVENT:
         default: // all unhandled events pass the event back up to the next level
@@ -202,8 +218,11 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(PauseRight);
+                ThisEvent.EventType = AT_DOOR_TAPE;
+            }
             break;
         default:
             break;
@@ -241,8 +260,11 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(PauseRight);
+                ThisEvent.EventType = AT_DOOR_TAPE;
+            }
             break;
         default:
             break;
@@ -288,8 +310,11 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(PauseRight);
+                ThisEvent.EventType = AT_DOOR_TAPE;
+            }
             break;
         case BUMPER_ON:
             if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
@@ -303,6 +328,25 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
         }
         break;
 
+    case PauseRight:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            left(0);
+            right(0);
+            ES_Timer_InitTimer(TAPE_TURN_TIMER, PAUSE_TIME);
+            break;
+        case ES_TIMEOUT:
+            if (ThisEvent.EventParam == TAPE_TURN_TIMER)
+            {
+                SWITCH(TurnAtTapeRight);
+            }
+            break;
+        case ES_NO_EVENT:
+        default:
+            break;
+        }
+        break;
     case TurnAtTapeRight:
         switch (ThisEvent.EventType)
         {
@@ -383,7 +427,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(TurnAtTapeLeft);
+            }
             break;
         case ES_NO_EVENT:
         default: // all unhandled events pass the event back up to the next level
@@ -422,7 +469,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(TurnAtTapeLeft);
+            }
             break;
         default:
             break;
@@ -460,7 +510,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(TurnAtTapeLeft);
+            }
             break;
         default:
             break;
@@ -507,7 +560,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(TurnAtTapeLeft);
+            }
             break;
         case BUMPER_ON:
             if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
@@ -584,7 +640,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(TurnAtTapeLeft);
+            }
             break;
         case ES_NO_EVENT:
         default:
@@ -605,7 +664,10 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             }
             break;
         case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
+            if (ThisEvent.EventParam & (TAPE_FL | TAPE_FR))
+            {
+                SWITCH(TurnAtTapeRight);
+            }
             break;
         case ES_NO_EVENT:
         default:
@@ -627,6 +689,11 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
 
     ES_Tail(); // trace call stack end
     return ThisEvent;
+}
+
+void setWallStatus(int status)
+{
+    wallStatus = status * 2;
 }
 
 /*******************************************************************************

@@ -70,5 +70,7 @@ uint8_t InitFollowWallSubHSM(void);
  * @author Gabriel H Elkaim, 2011.10.23 19:25 */
 ES_Event RunFollowWallSubHSM(ES_Event ThisEvent);
 
+void setWallStatus(int status);
+
 #endif /* SUB_HSM_Template_H */
 
