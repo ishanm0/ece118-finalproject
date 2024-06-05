@@ -209,8 +209,7 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_TIMER)
             {
-                nextState = TurnRightAlignWithDoor;
-                makeTransition = TRUE;
+                SWITCH(TurnRightAlignWithDoor);
             }
             break;
         case ES_NO_EVENT:
@@ -229,8 +228,7 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_TIMER)
             {
-                nextState = BackToDoor;
-                makeTransition = TRUE;
+                SWITCH(BackToDoor);
             }
             break;
         case ES_NO_EVENT:
@@ -249,8 +247,7 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_TIMER)
             {
-                nextState = FrontFromDoor;
-                makeTransition = TRUE;
+                SWITCH(FrontFromDoor);
             }
             break;
         case ES_NO_EVENT:
@@ -269,8 +266,7 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_TIMER)
             {
-                nextState = Depositing;
-                makeTransition = TRUE;
+                SWITCH(Depositing);
             }
             break;
         case ES_NO_EVENT:
@@ -290,6 +286,7 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == DEPOSIT_TIMER) {
                 ThisEvent.EventType = DEPOSIT_DONE;
+                door(FALSE);
             }
             break;
         case ES_NO_EVENT:

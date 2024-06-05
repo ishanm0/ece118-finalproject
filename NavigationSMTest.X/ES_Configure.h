@@ -23,10 +23,10 @@
 //#define POSTFUNCTION_FOR_KEYBOARD_INPUT PostGenericService
 
 //define for TattleTale
-//#define USE_TATTLETALE
+#define USE_TATTLETALE
 
 //uncomment to supress the entry and exit events
-//#define SUPPRESS_EXIT_ENTRY_IN_TATTLE
+#define SUPPRESS_EXIT_ENTRY_IN_TATTLE
 
 /****************************************************************************/
 // Name/define the events of interest
@@ -171,7 +171,7 @@ static const char *EventNames[] = {
 // the name of the run function
 #define SERV_1_RUN RunMainHSM
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 3
+#define SERV_1_QUEUE_SIZE 10
 #endif
 
 // These are the definitions for Service 2

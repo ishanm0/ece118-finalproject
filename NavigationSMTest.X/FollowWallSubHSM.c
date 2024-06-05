@@ -317,31 +317,31 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
                 switch (wallStatus)
                 {
                 case 1:
-                    SWITCH(GetCloserToWallRight);
+                    SWITCH(GetCloserToWallLeft);
                     break;
                 case -1:
-                    SWITCH(GetFurtherFromWallRight);
+                    SWITCH(GetFurtherFromWallLeft);
                     break;
                 default:
-                    SWITCH(DriveAlongWallRight);
+                    SWITCH(DriveAlongWallLeft);
                     break;
                 }
             }
             break;
         case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_LEFT)
+            if (ThisEvent.EventParam & WALL_RIGHT)
             {
                 wallStatus = -1;
             }
             break;
         case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_LEFT)
+            if (ThisEvent.EventParam & WALL_RIGHT)
             {
                 wallStatus = 1;
             }
             break;
         case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_LEFT)
+            if (ThisEvent.EventParam & WALL_RIGHT)
             {
                 wallStatus = 0;
             }
@@ -535,31 +535,31 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
                 switch (wallStatus)
                 {
                 case 1:
-                    SWITCH(GetCloserToWallLeft);
+                    SWITCH(GetCloserToWallRight);
                     break;
                 case -1:
-                    SWITCH(GetFurtherFromWallLeft);
+                    SWITCH(GetFurtherFromWallRight);
                     break;
                 default:
-                    SWITCH(DriveAlongWallLeft);
+                    SWITCH(DriveAlongWallRight);
                     break;
                 }
             }
             break;
         case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
+            if (ThisEvent.EventParam & WALL_LEFT)
             {
                 wallStatus = -1;
             }
             break;
         case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_RIGHT)
+            if (ThisEvent.EventParam & WALL_LEFT)
             {
                 wallStatus = 1;
             }
             break;
         case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
+            if (ThisEvent.EventParam & WALL_LEFT)
             {
                 wallStatus = 0;
             }

@@ -152,7 +152,6 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             nextState = FindWall;
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
-            ;
         }
         else if (ThisEvent.EventType == ES_EXIT)
         {
@@ -255,6 +254,7 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF))
             {
                 SWITCH(FollowWall);
+                InitFollowWallSubHSM();
             }
 
         case ES_NO_EVENT:

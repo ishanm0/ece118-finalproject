@@ -109,12 +109,11 @@ ES_Event RunFollowTapeSubHSM(ES_Event ThisEvent)
     switch (CurrentState)
     {
     case InitPState: // If current state is initial Pseudo State
-        if (ThisEvent.EventType == BATTERY_CONNECTED)
+        if (ThisEvent.EventType == ES_INIT)
         {
             nextState = pivit;
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
-            ;
         }
         break;
     case pivit: // move to have the front sensor on the line and the back not on the line assume both are on the line
