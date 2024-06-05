@@ -227,6 +227,7 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                 case ES_ENTRY:
                     left(-TURN_SPEED);
                     right(TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1000);
                     break;
                 case BUMPER_ON:
                     if (ThisEvent.EventParam & BUMPER_TRF) {
@@ -246,7 +247,12 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                         makeTransition = TRUE;
                     }
                     break;
-                case ES_NO_EVENT:
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER){
+                        nextState = DriveForwardPreparingLeftTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -256,6 +262,7 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                 case ES_ENTRY:
                     left(TURN_SPEED);
                     right(-TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1000);
                     break;
                 case BUMPER_ON:
                     if (ThisEvent.EventParam & BUMPER_TRF) {
@@ -270,12 +277,17 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                     }
                     break;
                 case TAPE_ON:
-                    if (ThisEvent.EventParam & TAPE_BL) {
+                    if (ThisEvent.EventParam & TAPE_BR) {
                         nextState = DriveForwardPreparingRightTurn;
                         makeTransition = TRUE;
                     }
                     break;
-                case ES_NO_EVENT:
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER){
+                        nextState = DriveForwardPreparingLeftTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -285,7 +297,7 @@ ES_Event RunObstacleDetectSM(ES_Event ThisEvent) {
                 case ES_ENTRY:
                     left(0);
                     right(-DRIVE_SPEED);
-                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1568);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1200);
                     break;
                 case ES_TIMEOUT:
                     nextState = DriveForwardPreparingRightTurn;
