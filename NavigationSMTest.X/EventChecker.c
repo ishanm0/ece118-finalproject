@@ -183,3 +183,37 @@ uint8_t CheckTapeSensors(void)
     tapeState = newTapeState;
     return returnVal;
 }
+static uint16_t lastwall = 0;
+static ES_EventTyp_t lastEvent = WALL_FAR;
+uint8_t CheckWALL(void)
+{
+    AD_AddPins(AD_PORTV5);
+    ES_EventTyp_t curEvent;
+    ES_Event thisEvent;
+    uint8_t returnVal = FALSE;
+    
+    uint16_t sensor =  AD_ReadADPin(AD_PORTV5); // Use descriptive variable names
+    
+    // Determine the current event based on light level comparison with thresholds
+    if (sensor < 895) {
+        curEvent = WALL_CLOSE;
+    } else if (sensor > 900) {
+        curEvent = WALL_FAR;
+    } else {
+        // No significant change in light level, do nothing
+        return returnVal;
+    }
+    
+    // Check if there's a transition between light and dark
+    if ((curEvent == WALL_CLOSE && lastEvent == WALL_FAR) || (curEvent == WALL_FAR && lastEvent == WALL_CLOSE)) {
+        thisEvent.EventType = curEvent;
+        thisEvent.EventParam = sensor;
+        returnVal = TRUE;
+        lastEvent = curEvent;  // Update last event
+        PostPETERHSM(thisEvent);
+    }
+    lastwall = sensor;  // Update last light level
+    return returnVal;
+}
+
+

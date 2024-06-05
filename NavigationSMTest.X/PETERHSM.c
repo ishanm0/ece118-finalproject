@@ -57,6 +57,19 @@ typedef enum {
     smack,
     reajust,
     LeftMove,
+    Phasetwo,
+    Wall,
+    ROTATEONWALL,
+    secondLoopPhaseONEA,
+    secondLoopPhaseONEB,
+    secondLoopPhaseONEC,
+    FollowWallLeft,
+    FollowWallRight,
+    temp,
+    PhasethreeARight,
+    PhasethreeALeft,
+    BACKALITTLE,
+    Check,
     Stop,
 } TemplateHSMState_t;
 
@@ -72,6 +85,19 @@ static const char *StateNames[] = {
 	"smack",
 	"reajust",
 	"LeftMove",
+	"Phasetwo",
+	"Wall",
+	"ROTATEONWALL",
+	"secondLoopPhaseONEA",
+	"secondLoopPhaseONEB",
+	"secondLoopPhaseONEC",
+	"FollowWallLeft",
+	"FollowWallRight",
+	"temp",
+	"PhasethreeARight",
+	"PhasethreeALeft",
+	"BACKALITTLE",
+	"Check",
 	"Stop",
 };
 
@@ -87,7 +113,6 @@ void right(int speed);
 void intake(uint8_t on);
 void door(uint8_t open);
 int x = 0;
-
 /*******************************************************************************
  * PRIVATE MODULE VARIABLES                                                            *
  ******************************************************************************/
@@ -154,16 +179,236 @@ uint8_t PostPETERHSM(ES_Event ThisEvent) {
 ES_Event RunPETERHSM(ES_Event ThisEvent) {
     uint8_t makeTransition = FALSE; // use to flag transition
     TemplateHSMState_t nextState; // <- change type to correct enum
-    int x = 0;
     ES_Tattle(); // trace call stack
 
     switch (CurrentState) {
         case InitPState: // If current state is initial Pseudo State
             if (ThisEvent.EventType == BATTERY_CONNECTED) {
-                nextState = pivit;
+                nextState = BACKALITTLE;
                 makeTransition = TRUE;
                 ThisEvent.EventType = ES_NO_EVENT;
                 ;
+            }
+            break;
+        case BACKALITTLE:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    // printf("ROTATEONWALL\r\n");
+                    left(-1000);
+                    right(-1000);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    x = 1;
+                    nextState = ROTATEONWALL;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case ROTATEONWALL:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    // printf("ROTATEONWALL\r\n");
+                    left(600);
+                    right(-900);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 500);
+                    break;
+                case ES_TIMEOUT:
+                    if (x == 1) {
+                        nextState = PhasethreeARight;
+                        makeTransition = TRUE;
+                        x = 0;
+                    } else {
+                        nextState = Wall;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case Wall:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(970);
+                    right(1000);
+                    break;
+                case TAPE_ON:
+                    nextState = secondLoopPhaseONEA;
+                    makeTransition = TRUE;
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = Check;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLS) {
+                        nextState = Check;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BRS) {
+                        nextState = Stop;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BRS) {
+                        nextState = Stop;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case Check:
+            //printf("Check\r\n");
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(600);
+                    right(0);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 260);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = Wall;
+                    makeTransition = TRUE;
+                    break;
+                case TAPE_ON:
+                    nextState = secondLoopPhaseONEA;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case secondLoopPhaseONEA:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(1000);
+                    right(-1000);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BL) {
+                        nextState = secondLoopPhaseONEB;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case secondLoopPhaseONEB:// go forward abit
+            switch (ThisEvent.EventType){
+                case ES_ENTRY:
+                    left(1000);
+                    right(1000);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 260);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = secondLoopPhaseONEC;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case secondLoopPhaseONEC:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(1000);
+                    right(-1000);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 100);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BR) {
+                        nextState = temp;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_TIMEOUT:
+                    nextState = temp;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case temp:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(1000);
+                    right(1000);
+                    break;
+                case TAPE_ON:
+                    nextState = QCW;
+                    x = 1;
+                    makeTransition = TRUE;
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case PhasethreeARight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(980);
+                    right(1000);
+                    ES_Timer_InitTimer(Pivit_ROTATE_TIMER, 600);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = PhasethreeALeft;
+                    makeTransition = TRUE;
+                    break;
+                case WALL_CLOSE:
+                    nextState = PhasethreeALeft;
+                    makeTransition = TRUE;
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = Stop;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        nextState = Stop;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case PhasethreeALeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(1000);
+                    right(900);
+                    break;
+                case WALL_FAR:
+                    nextState = PhasethreeARight;
+                    makeTransition = TRUE;
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        nextState = Stop;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        nextState = Stop;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
             }
             break;
         case pivit: // move to have the front sensor on the line and the back not on the line assume both are on the line
@@ -227,6 +472,22 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                         nextState = REVERSEBACK;
                         makeTransition = TRUE;
                     }
+                    if (ThisEvent.EventParam & BUMPER_BRF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BRS) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLS) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
                     break;
                 case ES_NO_EVENT:
 
@@ -266,7 +527,22 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                         nextState = REVERSEBACK;
                         makeTransition = TRUE;
                     }
-
+                    if (ThisEvent.EventParam & BUMPER_BRF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BRS) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLS) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
                     break;
                 case ES_NO_EVENT:
                 default:
@@ -348,6 +624,23 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                         makeTransition = TRUE;
                         ES_Timer_StopTimer(Pivit_ROTATE_TIMER);
                     }
+                    //hits walls
+                    if (ThisEvent.EventParam & BUMPER_BRF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BRS) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLS) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
                     break;
                 case TAPE_ON:
                     if (ThisEvent.EventParam & TAPE_FL) {
@@ -391,6 +684,23 @@ ES_Event RunPETERHSM(ES_Event ThisEvent) {
                 case BUMPER_ON:
                     if (ThisEvent.EventParam & BUMPER_TRF) {
                         nextState = REVERSEBACK;
+                        makeTransition = TRUE;
+                    }
+                    //HITS THE WALL
+                    if (ThisEvent.EventParam & BUMPER_BRF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BRS) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLF) {
+                        nextState = BACKALITTLE;
+                        makeTransition = TRUE;
+                    }
+                    if (ThisEvent.EventParam & BUMPER_BLS) {
+                        nextState = BACKALITTLE;
                         makeTransition = TRUE;
                     }
                 case ES_NO_EVENT:

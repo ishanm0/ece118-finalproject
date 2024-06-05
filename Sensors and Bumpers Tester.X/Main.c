@@ -42,41 +42,41 @@ int main(void) {
 
     //    AD_AddPins(AD_PORTV3);
     //    AD_AddPins(AD_PORTV4);
-    //    AD_AddPins(AD_PORTV5);
+    AD_AddPins(AD_PORTV4);
     //    AD_AddPins(AD_PORTV6);
 
-        IO_PortsSetPortInputs(PORTZ, BUMPER_PIN_FLR | BUMPER_PIN_FLB | BUMPER_PIN_FRR | BUMPER_PIN_FRB | BUMPER_PIN_BLR | BUMPER_PIN_BLB | BUMPER_PIN_BRR | BUMPER_PIN_BRB);
-        IO_PortsSetPortInputs(PORTX, PIN4); // front right tape sensor
-        IO_PortsSetPortInputs(PORTZ, PIN9 | PIN11);        // back left & back right tape sensor
-        //portY 9 and 11 arent working
-        RC_AddPins(RC_PORTV03);
-        //y-10 is left bad ir
-        //z-12 is front right ir
-        //
-        IO_PortsSetPortInputs(PORTZ, PIN12);       // front right tape sensor
-        IO_PortsClearPortBits(PORTY, PIN12);
-        IO_PortsSetPortBits(PORTY, PIN12);
-        
-        IO_PortsSetPortOutputs(PORTY, PIN12);
-        uint8_t bumpers = 0;
-        uint8_t tape = 0;
+    IO_PortsSetPortInputs(PORTZ, BUMPER_PIN_FLR | BUMPER_PIN_FLB | BUMPER_PIN_FRR | BUMPER_PIN_FRB | BUMPER_PIN_BLR | BUMPER_PIN_BLB | BUMPER_PIN_BRR | BUMPER_PIN_BRB);
+    IO_PortsSetPortInputs(PORTX, PIN4); // front right tape sensor
+    IO_PortsSetPortInputs(PORTZ, PIN9 | PIN11); // back left & back right tape sensor
+    //portY 9 and 11 arent working
+    RC_AddPins(RC_PORTV03);
+    //y-10 is left bad ir
+    //z-12 is front right ir
+
+    IO_PortsSetPortInputs(PORTZ, PIN12); // front right tape sensor
+    IO_PortsClearPortBits(PORTY, PIN12);
+    IO_PortsSetPortBits(PORTY, PIN12);
+
+    IO_PortsSetPortOutputs(PORTY, PIN12);
+    uint8_t bumpers = 0;
+    uint8_t tape = 0;
+    AD_AddPins(AD_PORTV5);
     AD_AddPins(AD_PORTV4);
     while (1) {
-//        if(AD_IsNewDataReady()){
-//            unsigned int wall = AD_ReadADPin(AD_PORTV4);
-//             printf("right wall sensor: %d \r\n", wall);
-//        }
-//    }
+        //        if(AD_IsNewDataReady()){
+        //            unsigned int wall = AD_ReadADPin(AD_PORTV4);
+        //             printf("right wall sensor: %d \r\n", wall);
+        //        }
+        //    }
         // Sensors Testing
         //        if (AD_IsNewDataReady() == TRUE) {
         //            unsigned int OD1 = AD_ReadADPin(AD_PORTV3);
-        //            unsigned int OD2 = AD_ReadADPin(AD_PORTV4);
-        //            unsigned int OD3 = AD_ReadADPin(AD_PORTV5);
+        unsigned int OD2 = AD_ReadADPin(AD_PORTV4);
+        unsigned int OD3 = AD_ReadADPin(AD_PORTV5);
         //            unsigned int OD4 = AD_ReadADPin(AD_PORTV6);
 
         //            printf("Obstacle Detector 1: %d \r\n\n", OD1);
-        //            printf("Obstacle Detector 2: %d \r\n\n", OD2);
-        //            printf("Obstacle Detector 3: %d \r\n\n", OD3);
+        printf("%d   %d\r\n\n", OD2 ,OD3);
         //            printf("Obstacle Detector 4: %d \r\n\n", OD4);
         //        }
 
@@ -180,16 +180,16 @@ int main(void) {
         //
         //        // Tape Sensors Testing
         //
-//                if ((IO_PortsReadPort(PORTX) & PIN4) && !(tape & 0x01))
-//                {
-//                    tape |= 0x01;
-//                    printf("Front Right Tape Sensor On\n");
-//                }
-//                else if (!(IO_PortsReadPort(PORTX) & PIN4) && (tape & 0x01))
-//                {
-//                    tape &= ~0x01;
-//                    printf("Front Right Tape Sensor Off\n");
-//                }
+        //                if ((IO_PortsReadPort(PORTX) & PIN4) && !(tape & 0x01))
+        //                {
+        //                    tape |= 0x01;
+        //                    printf("Front Right Tape Sensor On\n");
+        //                }
+        //                else if (!(IO_PortsReadPort(PORTX) & PIN4) && (tape & 0x01))
+        //                {
+        //                    tape &= ~0x01;
+        //                    printf("Front Right Tape Sensor Off\n");
+        //                }
         //
         //        if ((IO_PortsReadPort(PORTY) & PIN11) && !(tape & 0x02))
         //        {
@@ -213,16 +213,16 @@ int main(void) {
         //            printf("Back Left Tape Sensor Off\n");
         //        }
         //
-                if ((IO_PortsReadPort(PORTZ) & PIN12))
-                {
-                    tape |= 0x08;
-                    printf("Front Left Tape Sensor On\r\n");
-                }
-                else if (!(IO_PortsReadPort(PORTZ) & PIN12))
-                {
-                    tape &= ~0x08;
-                    printf("Front Left Tape Sensor Off\r\n");
-                }
+        //                if ((IO_PortsReadPort(PORTZ) & PIN12))
+        //                {
+        //                    tape |= 0x08;
+        //                    printf("Front Left Tape Sensor On\r\n");
+        //                }
+        //                else if (!(IO_PortsReadPort(PORTZ) & PIN12))
+        //                {
+        //                    tape &= ~0x08;
+        //                    printf("Front Left Tape Sensor Off\r\n");
+        //                }
         //        while (1) {
         //            
         //            //printf("%x \n",(IO_PortsReadPort(PORTZ) & PIN12));
@@ -234,5 +234,5 @@ int main(void) {
         //
         //        }
     }
-        return 0;
-    }
+    return 0;
+}
