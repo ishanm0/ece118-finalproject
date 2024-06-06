@@ -232,7 +232,8 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
         switch (ThisEvent.EventType)
         {
         case DEPOSIT_DONE:
-            SWITCH(FollowTape);
+            InitFollowWallSubHSM();
+            SWITCH(FollowWall);
             break;
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == COLLECT2_TIMER)
@@ -245,66 +246,66 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             break;
         }
         break;
-    case FollowTape:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunFollowTapeSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == COLLECT2_TIMER)
-            {
-                collect2Timer++;
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF))
-            {
-                SWITCH(RealignToWall);
-            }
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case RealignToWall:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(0);
-            right(-TURN_SPEED);
-            ES_Timer_InitTimer(NAV_TIMER, 600);
-            break;
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == NAV_TIMER)
-            {
-                uint16_t distL = AD_ReadADPin(WALL_DIST_L_PORT);
-                if (distL < WALL_DIST_IN_RANGE_MIN)
-                {
-                    setWallStatus(-1);
-                }
-                else if (distL > WALL_DIST_IN_RANGE_MAX)
-                {
-                    setWallStatus(1);
-                }
-                else
-                {
-                    setWallStatus(0);
-                }
+    // case FollowTape:
+    //     // run sub-state machine for this state
+    //     // NOTE: the SubState Machine runs and responds to events before anything in the this
+    //     // state machine does
+    //     ThisEvent = RunFollowTapeSubHSM(ThisEvent);
+    //     switch (ThisEvent.EventType)
+    //     {
+    //     case ES_TIMEOUT:
+    //         if (ThisEvent.EventParam == COLLECT2_TIMER)
+    //         {
+    //             collect2Timer++;
+    //         }
+    //         break;
+    //     case BUMPER_ON:
+    //         if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF))
+    //         {
+    //             SWITCH(RealignToWall);
+    //         }
+    //     case ES_NO_EVENT:
+    //     default:
+    //         break;
+    //     }
+    //     break;
+    // case RealignToWall:
+    //     switch (ThisEvent.EventType)
+    //     {
+    //     case ES_ENTRY:
+    //         left(0);
+    //         right(-TURN_SPEED);
+    //         ES_Timer_InitTimer(NAV_TIMER, 600);
+    //         break;
+    //     case ES_TIMEOUT:
+    //         if (ThisEvent.EventParam == NAV_TIMER)
+    //         {
+    //             uint16_t distL = AD_ReadADPin(WALL_DIST_L_PORT);
+    //             if (distL < WALL_DIST_IN_RANGE_MIN)
+    //             {
+    //                 setWallStatus(-1);
+    //             }
+    //             else if (distL > WALL_DIST_IN_RANGE_MAX)
+    //             {
+    //                 setWallStatus(1);
+    //             }
+    //             else
+    //             {
+    //                 setWallStatus(0);
+    //             }
 
-                InitFollowWallSubHSM();
-                SWITCH(FollowWall);
-            }
-            else if (ThisEvent.EventParam == COLLECT2_TIMER)
-            {
-                collect2Timer++;
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
+    //             InitFollowWallSubHSM();
+    //             SWITCH(FollowWall);
+    //         }
+    //         else if (ThisEvent.EventParam == COLLECT2_TIMER)
+    //         {
+    //             collect2Timer++;
+    //         }
+    //         break;
+    //     case ES_NO_EVENT:
+    //     default:
+    //         break;
+    //     }
     case ZigZag:
         // run sub-state machine for this state
         // NOTE: the SubState Machine runs and responds to events before anything in the this
