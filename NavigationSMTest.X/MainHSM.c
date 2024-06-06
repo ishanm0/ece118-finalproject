@@ -23,8 +23,7 @@
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
 
-typedef enum
-{
+typedef enum {
     InitPState,
     FindWall,
     FollowWall,
@@ -38,16 +37,16 @@ typedef enum
 } MainHSMState_t;
 
 static const char *StateNames[] = {
-    "InitPState",
-    "FindWall",
-    "FollowWall",
-    "Deposit",
-    "FollowTape",
-    "ZigZag",
-    "AvoidOpenSpace",
-    "AvoidGoLeft",
-    "AvoidGoRight",
-    "GameOver",
+	"InitPState",
+	"FindWall",
+	"FollowWall",
+	"Deposit",
+	"FollowTape",
+	"ZigZag",
+	"AvoidOpenSpace",
+	"AvoidGoLeft",
+	"AvoidGoRight",
+	"GameOver",
 };
 
 /*******************************************************************************
@@ -82,18 +81,14 @@ static uint8_t collect2Timer = 0;
  *        to rename this to something appropriate.
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-uint8_t InitMainHSM(uint8_t Priority)
-{
+uint8_t InitMainHSM(uint8_t Priority) {
     MyPriority = Priority;
     // put us into the Initial PseudoState
     CurrentState = InitPState;
     // post the initial transition event
-    if (ES_PostToService(MyPriority, INIT_EVENT) == TRUE)
-    {
+    if (ES_PostToService(MyPriority, INIT_EVENT) == TRUE) {
         return TRUE;
-    }
-    else
-    {
+    } else {
         return FALSE;
     }
 }
@@ -107,8 +102,7 @@ uint8_t InitMainHSM(uint8_t Priority)
  *        be posted to. Remember to rename to something appropriate.
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-uint8_t PostMainHSM(ES_Event ThisEvent)
-{
+uint8_t PostMainHSM(ES_Event ThisEvent) {
     return ES_PostToService(MyPriority, ThisEvent);
 }
 
@@ -127,174 +121,163 @@ uint8_t PostMainHSM(ES_Event ThisEvent)
  *       not consumed as these need to pass pack to the higher level state machine.
  * @author J. Edward Carryer, 2011.10.23 19:25
  * @author Gabriel H Elkaim, 2011.10.23 19:25 */
-ES_Event RunMainHSM(ES_Event ThisEvent)
-{
+int x = 0;
+ES_Event RunMainHSM(ES_Event ThisEvent) {
     uint8_t makeTransition = FALSE; // use to flag transition
-    MainHSMState_t nextState;       // <- change type to correct enum
+    MainHSMState_t nextState; // <- change type to correct enum
 
     ES_Tattle(); // trace call stack
 
-    switch (CurrentState)
-    {
-    case InitPState:                                  // If current state is initial Pseudo State
-        if (ThisEvent.EventType == BATTERY_CONNECTED) // only respond to ES_Init
-        {
-            // this is where you would put any actions associated with the
-            // transition from the initial pseudo-state into the actual
-            // initial state
-            // Initialize all sub-state machines
-            InitFindWallSubHSM();
-            InitFollowWallSubHSM();
-            InitDepositSubHSM();
-            InitFollowTapeSubHSM();
-            InitZigZagSubHSM();
-            // now put the machine into the actual initial state
-            nextState = FindWall;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-        }
-        else if (ThisEvent.EventType == ES_EXIT)
-        {
-            ES_Timer_InitTimer(GAME_TIMER, 2 * 60 * 1000);
-            ES_Timer_InitTimer(COLLECT1_TIMER, 45 * 1000);
-            ES_Timer_InitTimer(COLLECT2_TIMER, 90 * 1000);
-        }
-        break;
-
-    case FindWall: // in the first state, replace this with correct names
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunFindWallSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case WALL_ALIGNED: // TODO: the sub hsm needs to throw this event but idk where it does
-            SWITCH(FollowWall);
-            break;
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == COLLECT1_TIMER)
+    switch (CurrentState) {
+        case InitPState: // If current state is initial Pseudo State
+            if (ThisEvent.EventType == BATTERY_CONNECTED) // only respond to ES_Init
             {
-                collect1Timer++;
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case FollowWall:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunFollowWallSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == COLLECT1_TIMER)
-            {
-                collect1Timer++;
-            }
-            else if (ThisEvent.EventParam == COLLECT2_TIMER)
-            {
-                collect2Timer++;
-            }
-            break;
-        case AT_DOOR_TAPE:
-            if (collect1Timer)
-            {
-                SWITCH(Deposit);
-                collect1Timer = 0;
-            }
-            else if (collect2Timer)
-            {
-                SWITCH(ZigZag);
-                collect2Timer = 0;
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case Deposit:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunDepositSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case DEPOSIT_DONE:
-            SWITCH(FollowTape);
-            break;
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == COLLECT2_TIMER)
-            {
-                collect2Timer++;
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case FollowTape:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunFollowTapeSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == COLLECT2_TIMER)
-            {
-                collect2Timer++;
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF))
-            {
-                SWITCH(FollowWall);
+                // this is where you would put any actions associated with the
+                // transition from the initial pseudo-state into the actual
+                // initial state
+                // Initialize all sub-state machines
+                InitFindWallSubHSM();
                 InitFollowWallSubHSM();
+                InitDepositSubHSM();
+                InitFollowTapeSubHSM();
+                InitZigZagSubHSM();
+                // now put the machine into the actual initial state
+                nextState = FindWall;
+                makeTransition = TRUE;
+                ThisEvent.EventType = ES_NO_EVENT;
+            } else if (ThisEvent.EventType == ES_EXIT) {
+                ES_Timer_InitTimer(GAME_TIMER, 2 * 60 * 1000);
+                ES_Timer_InitTimer(COLLECT1_TIMER, 5 * 1000);
+                ES_Timer_InitTimer(COLLECT2_TIMER, 90 * 1000);
             }
+            break;
 
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case ZigZag:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunZigZagSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == GAME_TIMER)
-            {
-                SWITCH(GameOver);
+        case FindWall: // in the first state, replace this with correct names
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            ThisEvent = RunFindWallSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case WALL_ALIGNED: // TODO: the sub hsm needs to throw this event but idk where it does
+                    SWITCH(FollowWall);
+                    break;
+                    //        case ES_TIMEOUT:
+                    //            if (ThisEvent.EventParam == COLLECT1_TIMER)
+                    //            {
+                    //                collect1Timer++;
+                    //            }
+                    //            break;
+                case ES_NO_EVENT:
+                default:
+                    break;
             }
             break;
-        case ES_NO_EVENT:
-        default:
+        case FollowWall:
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            ThisEvent = RunFollowWallSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                    //        case ES_TIMEOUT:
+                    //            if (ThisEvent.EventParam == COLLECT1_TIMER)
+                    //            {
+                    //                collect1Timer++;
+                    //            }
+                    //            else if (ThisEvent.EventParam == COLLECT2_TIMER)
+                    //            {
+                    //                collect2Timer++;
+                    //            }
+                    //            break;
+                case AT_DOOR_TAPE:
+                    if (x == 0) {
+                        x++;
+                    }else{
+                        SWITCH(Deposit);
+                        collect1Timer = 0;
+                    }
+
+                    //            else if (collect2Timer)
+                    //            {
+                    //                SWITCH(ZigZag);
+                    //                collect2Timer = 0;
+                    //            }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
             break;
-        }
-        break;
-    case GameOver:
-        if (ThisEvent.EventType == ES_ENTRY)
-        {
-            left(0);
-            right(0);
-            intake(FALSE);
-            door(FALSE);
-        }
-        break;
-    default: // all unhandled states fall into here
-        break;
+        case Deposit:
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            ThisEvent = RunDepositSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case DEPOSIT_DONE:
+                    SWITCH(FollowTape);
+                    break;
+                    //        case ES_TIMEOUT:
+                    //            if (ThisEvent.EventParam == COLLECT2_TIMER)
+                    //            {
+                    //                collect2Timer++;
+                    //            }
+                    //            break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case FollowTape:
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            ThisEvent = RunFollowTapeSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == COLLECT2_TIMER) {
+                        collect2Timer++;
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BRF)) {
+                        SWITCH(FollowWall);
+                        InitFollowWallSubHSM();
+                    }
+
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case ZigZag:
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            ThisEvent = RunZigZagSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == GAME_TIMER) {
+                        SWITCH(GameOver);
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case GameOver:
+            if (ThisEvent.EventType == ES_ENTRY) {
+                left(0);
+                right(0);
+                intake(FALSE);
+                door(FALSE);
+            }
+            break;
+        default: // all unhandled states fall into here
+            break;
     } // end switch on Current State
 
-    if (makeTransition == TRUE)
-    { // making a state transition, send EXIT and ENTRY
+    if (makeTransition == TRUE) { // making a state transition, send EXIT and ENTRY
         // recursively call the current state with an exit event
         RunMainHSM(EXIT_EVENT); // <- rename to your own Run function
         CurrentState = nextState;

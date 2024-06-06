@@ -14,8 +14,7 @@
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
-typedef enum
-{
+typedef enum {
     InitPSubState,
     DriveAlongWallRight,
     GetCloserToWallRight,
@@ -32,19 +31,19 @@ typedef enum
 } FollowWallSubHSMState_t;
 
 static const char *StateNames[] = {
-    "InitPSubState",
-    "DriveAlongWallRight",
-    "GetCloserToWallRight",
-    "GetFurtherFromWallRight",
-    "TouchedWallRight",
-    "TurnAtTapeRight",
-    "DriveAlongWallLeft",
-    "GetCloserToWallLeft",
-    "GetFurtherFromWallLeft",
-    "TouchedWallLeft",
-    "TurnAtTapeLeft",
-    "AvoidGoLeft",
-    "AvoidGoRight",
+	"InitPSubState",
+	"DriveAlongWallRight",
+	"GetCloserToWallRight",
+	"GetFurtherFromWallRight",
+	"TouchedWallRight",
+	"TurnAtTapeRight",
+	"DriveAlongWallLeft",
+	"GetCloserToWallLeft",
+	"GetFurtherFromWallLeft",
+	"TouchedWallLeft",
+	"TurnAtTapeLeft",
+	"AvoidGoLeft",
+	"AvoidGoRight",
 };
 
 /*******************************************************************************
@@ -77,14 +76,12 @@ static int wallStatus = 0;
  *        to rename this to something appropriate.
  *        Returns TRUE if successful, FALSE otherwise
  * @author J. Edward Carryer, 2011.10.23 19:25 */
-uint8_t InitFollowWallSubHSM(void)
-{
+uint8_t InitFollowWallSubHSM(void) {
     ES_Event returnEvent;
 
     CurrentState = InitPSubState;
     returnEvent = RunFollowWallSubHSM(INIT_EVENT);
-    if (returnEvent.EventType == ES_NO_EVENT)
-    {
+    if (returnEvent.EventType == ES_NO_EVENT) {
         return TRUE;
     }
     return FALSE;
@@ -105,520 +102,513 @@ uint8_t InitFollowWallSubHSM(void)
  *       not consumed as these need to pass pack to the higher level state machine.
  * @author J. Edward Carryer, 2011.10.23 19:25
  * @author Gabriel H Elkaim, 2011.10.23 19:25 */
-ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
-{
-    uint8_t makeTransition = FALSE;    // use to flag transition
+ES_Event RunFollowWallSubHSM(ES_Event ThisEvent) {
+    uint8_t makeTransition = FALSE; // use to flag transition
     FollowWallSubHSMState_t nextState; // <- change type to correct enum
 
     ES_Tattle(); // trace call stack
 
-    switch (CurrentState)
-    {
-    case InitPSubState:                     // If current state is initial Psedudo State
-        if (ThisEvent.EventType == ES_INIT) // only respond to ES_Init
-        {
-            // this is where you would put any actions associated with the
-            // transition from the initial pseudo-state into the actual
-            // initial state
+    switch (CurrentState) {
+        case InitPSubState: // If current state is initial Psedudo State
+            if (ThisEvent.EventType == ES_INIT) // only respond to ES_Init
+            {
+                // this is where you would put any actions associated with the
+                // transition from the initial pseudo-state into the actual
+                // initial state
+                InitAvoidGoLeftSubHSM();
+                InitAvoidGoRightSubHSM();
+                // now put the machine into the actual initial state
+                nextState = DriveAlongWallRight;
+                makeTransition = TRUE;
+                ThisEvent.EventType = ES_NO_EVENT;
+            }
+            break;
 
-            InitAvoidGoLeftSubHSM();
-            InitAvoidGoRightSubHSM();
-
-            // now put the machine into the actual initial state
-            nextState = DriveAlongWallRight;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-        }
-        break;
-
-    case DriveAlongWallRight: // in the first state, replace this with correct names
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(DRIVE_SPEED);
-            right(DRIVE_SPEED);
-            wallStatus = 0;
-            break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                SWITCH(GetCloserToWallRight);
-            }
-            break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                SWITCH(GetFurtherFromWallRight);
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS))
-            {
-                SWITCH(TouchedWallRight);
-            }
-            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoRight);
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
-            break;
-        case ES_NO_EVENT:
-        default: // all unhandled events pass the event back up to the next level
-            break;
-        }
-        break;
-
-    case GetCloserToWallRight:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
-            right(DRIVE_SPEED);
-            wallStatus = 1;
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                SWITCH(DriveAlongWallRight);
-            }
-            break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                SWITCH(GetFurtherFromWallRight);
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS))
-            {
-                SWITCH(TouchedWallRight);
-            }
-            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoRight);
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
-            break;
-        default:
-            break;
-        }
-        break;
-
-    case GetFurtherFromWallRight:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(DRIVE_SPEED);
-            right(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
-            wallStatus = -1;
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                SWITCH(DriveAlongWallRight);
-            }
-            break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                SWITCH(GetCloserToWallRight);
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS))
-            {
-                SWITCH(TouchedWallRight);
-            }
-            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoRight);
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
-            break;
-        default:
-            break;
-        }
-        break;
-    case TouchedWallRight:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(TURN_SPEED);
-            right(-TURN_SPEED);
-            break;
-        case BUMPER_OFF:
-            switch (wallStatus)
-            {
-            case 1:
-                SWITCH(GetCloserToWallRight);
-                break;
-            case -1:
-                SWITCH(GetFurtherFromWallRight);
-                break;
-            default:
-                SWITCH(DriveAlongWallRight);
-                break;
-            }
-            break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                wallStatus = -1;
-            }
-            break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                wallStatus = 1;
-            }
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                wallStatus = 0;
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            ThisEvent.EventType = AT_DOOR_TAPE;
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoRight);
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-
-    case TurnAtTapeRight:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(TURN_SPEED);
-            right(-TURN_SPEED);
-            ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME);
-            break;
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == TAPE_TURN_TIMER)
-            {
-                switch (wallStatus)
-                {
-                case 1:
-                    SWITCH(GetCloserToWallLeft);
+        case DriveAlongWallRight: // in the first state, replace this with correct names
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED);
+                    wallStatus = 0;
                     break;
-                case -1:
-                    SWITCH(GetFurtherFromWallLeft);
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        SWITCH(GetCloserToWallRight);
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        SWITCH(GetFurtherFromWallRight);
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS)) {
+                        SWITCH(TouchedWallRight);
+                    } else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoRight);
+                    }
+                    break;
+                case TAPE_ON:
+                    SWITCH(TurnAtTapeRight);
+                    ThisEvent.EventType = AT_DOOR_TAPE;
+                    break;
+                case ES_NO_EVENT:
+                default: // all unhandled events pass the event back up to the next level
+                    break;
+            }
+            break;
+
+        case GetCloserToWallRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
+                    right(DRIVE_SPEED);
+                    wallStatus = 1;
+                    break;
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        SWITCH(DriveAlongWallRight);
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        SWITCH(GetFurtherFromWallRight);
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS)) {
+                        SWITCH(TouchedWallRight);
+                    } else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoRight);
+                    }
+                    break;
+                case TAPE_ON:
+                    SWITCH(TurnAtTapeRight);
+                    ThisEvent.EventType = AT_DOOR_TAPE;
                     break;
                 default:
-                    SWITCH(DriveAlongWallLeft);
                     break;
-                }
             }
             break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                wallStatus = -1;
-            }
-            break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                wallStatus = 1;
-            }
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                wallStatus = 0;
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
 
-    case DriveAlongWallLeft:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(DRIVE_SPEED);
-            right(DRIVE_SPEED);
-            wallStatus = 0;
-            break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                SWITCH(GetCloserToWallLeft);
-            }
-            break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                SWITCH(GetFurtherFromWallLeft);
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS))
-            {
-                SWITCH(TouchedWallLeft);
-            }
-            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoLeft);
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
-            break;
-        case ES_NO_EVENT:
-        default: // all unhandled events pass the event back up to the next level
-            break;
-        }
-        break;
-
-    case GetCloserToWallLeft:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(DRIVE_SPEED);
-            right(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
-            wallStatus = 1;
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                SWITCH(DriveAlongWallLeft);
-            }
-            break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                SWITCH(GetFurtherFromWallLeft);
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS))
-            {
-                SWITCH(TouchedWallLeft);
-            }
-            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoLeft);
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
-            break;
-        default:
-            break;
-        }
-        break;
-
-    case GetFurtherFromWallLeft:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
-            right(DRIVE_SPEED);
-            wallStatus = -1;
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                SWITCH(DriveAlongWallLeft);
-            }
-            break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                SWITCH(GetCloserToWallLeft);
-            }
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS))
-            {
-                SWITCH(TouchedWallLeft);
-            }
-            else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoLeft);
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
-            break;
-        default:
-            break;
-        }
-        break;
-
-    case TouchedWallLeft:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(-TURN_SPEED);
-            right(TURN_SPEED);
-            break;
-        case BUMPER_OFF:
-            switch (wallStatus)
-            {
-            case 1:
-                SWITCH(GetCloserToWallLeft);
-                break;
-            case -1:
-                SWITCH(GetFurtherFromWallLeft);
-                break;
-            default:
-                SWITCH(DriveAlongWallLeft);
-                break;
-            }
-            break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                wallStatus = -1;
-            }
-            break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                wallStatus = 1;
-            }
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_RIGHT)
-            {
-                wallStatus = 0;
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
-            break;
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF))
-            {
-                SWITCH(AvoidGoLeft);
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-
-    case TurnAtTapeLeft:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            left(-TURN_SPEED);
-            right(TURN_SPEED);
-            ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME);
-            break;
-        case ES_TIMEOUT:
-            if (ThisEvent.EventParam == TAPE_TURN_TIMER)
-            {
-                switch (wallStatus)
-                {
-                case 1:
-                    SWITCH(GetCloserToWallRight);
+        case GetFurtherFromWallRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
+                    wallStatus = -1;
                     break;
-                case -1:
-                    SWITCH(GetFurtherFromWallRight);
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        SWITCH(DriveAlongWallRight);
+                    }
+                    break;
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        SWITCH(GetCloserToWallRight);
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS)) {
+                        SWITCH(TouchedWallRight);
+                    } else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoRight);
+                    }
+                    break;
+                case TAPE_ON:
+                    SWITCH(TurnAtTapeRight);
+                    ThisEvent.EventType = AT_DOOR_TAPE;
                     break;
                 default:
-                    SWITCH(DriveAlongWallRight);
                     break;
-                }
             }
             break;
-        case WALL_CLOSE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                wallStatus = -1;
+        case TouchedWallRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(TURN_SPEED);
+                    right(-TURN_SPEED);
+                    break;
+                case BUMPER_OFF:
+                    switch (wallStatus) {
+                        case 1:
+                            SWITCH(GetCloserToWallRight);
+                            break;
+                        case -1:
+                            SWITCH(GetFurtherFromWallRight);
+                            break;
+                        default:
+                            SWITCH(DriveAlongWallRight);
+                            break;
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        wallStatus = -1;
+                    }
+                    break;
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        wallStatus = 1;
+                    }
+                    break;
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        wallStatus = 0;
+                    }
+                    break;
+                case TAPE_ON:
+                    SWITCH(TurnAtTapeRight);
+                    ThisEvent.EventType = AT_DOOR_TAPE;
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoRight);
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
             }
             break;
-        case WALL_FAR:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                wallStatus = 1;
-            }
-            break;
-        case WALL_IN_RANGE:
-            if (ThisEvent.EventParam & WALL_LEFT)
-            {
-                wallStatus = 0;
-            }
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
 
-    case AvoidGoLeft:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunAvoidGoLeftSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS | BUMPER_BRF | BUMPER_BRS))
-            {
-                SWITCH(TouchedWallLeft);
+        case TurnAtTapeRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    //            left(TURN_SPEED);
+                    //            right(-TURN_SPEED);
+                    //            ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME);
+                    left(800);
+                    right(-800);
+                    ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME);
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == TAPE_TURN_TIMER) {
+                        switch (wallStatus) {
+                            case 1:
+                                SWITCH(GetCloserToWallLeft);
+                                break;
+                            case -1:
+                                SWITCH(GetFurtherFromWallLeft);
+                                break;
+                            default:
+                                SWITCH(DriveAlongWallLeft);
+                                break;
+                        }
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BR) {
+                        if (ThisEvent.EventParam == TAPE_TURN_TIMER) {
+                            switch (wallStatus) {
+                                case 1:
+                                    SWITCH(GetCloserToWallLeft);
+                                    break;
+                                case -1:
+                                    SWITCH(GetFurtherFromWallLeft);
+                                    break;
+                                default:
+                                    SWITCH(DriveAlongWallLeft);
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        wallStatus = -1;
+                    }
+                    break;
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        wallStatus = 1;
+                    }
+                    break;
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        wallStatus = 0;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
             }
             break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeLeft);
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
-    case AvoidGoRight:
-        // run sub-state machine for this state
-        // NOTE: the SubState Machine runs and responds to events before anything in the this
-        // state machine does
-        ThisEvent = RunAvoidGoRightSubHSM(ThisEvent);
-        switch (ThisEvent.EventType)
-        {
-        case BUMPER_ON:
-            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS | BUMPER_BRF | BUMPER_BRS))
-            {
-                SWITCH(TouchedWallRight);
-            }
-            break;
-        case TAPE_ON:
-            SWITCH(TurnAtTapeRight);
-            break;
-        case ES_NO_EVENT:
-        default:
-            break;
-        }
-        break;
 
-    default: // all unhandled states fall into here
-        break;
+        case DriveAlongWallLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED);
+                    wallStatus = 0;
+                    break;
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        SWITCH(GetCloserToWallLeft);
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        SWITCH(GetFurtherFromWallLeft);
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS)) {
+                        SWITCH(TouchedWallLeft);
+                    } else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoLeft);
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+
+                    break;
+                case ES_NO_EVENT:
+                default: // all unhandled events pass the event back up to the next level
+                    break;
+            }
+            break;
+
+        case GetCloserToWallLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
+                    wallStatus = 1;
+                    break;
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        SWITCH(DriveAlongWallLeft);
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        SWITCH(GetFurtherFromWallLeft);
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS)) {
+                        SWITCH(TouchedWallLeft);
+                    } else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoLeft);
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+            break;
+
+        case GetFurtherFromWallLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(DRIVE_SPEED * WALL_DIST_SPEED_FACTOR);
+                    right(DRIVE_SPEED);
+                    wallStatus = -1;
+                    break;
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        SWITCH(DriveAlongWallLeft);
+                    }
+                    break;
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        SWITCH(GetCloserToWallLeft);
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BRF | BUMPER_BRS)) {
+                        SWITCH(TouchedWallLeft);
+                    } else if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoLeft);
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+                    //                    SWITCH(TurnAtTapeLeft);
+                    break;
+                default:
+                    break;
+            }
+            break;
+
+        case TouchedWallLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-TURN_SPEED);
+                    right(TURN_SPEED);
+                    break;
+                case BUMPER_OFF:
+                    switch (wallStatus) {
+                        case 1:
+                            SWITCH(GetCloserToWallLeft);
+                            break;
+                        case -1:
+                            SWITCH(GetFurtherFromWallLeft);
+                            break;
+                        default:
+                            SWITCH(DriveAlongWallLeft);
+                            break;
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        wallStatus = -1;
+                    }
+                    break;
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        wallStatus = 1;
+                    }
+                    break;
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_RIGHT) {
+                        wallStatus = 0;
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FR) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+                    if (ThisEvent.EventParam & TAPE_FL) {
+                        SWITCH(TurnAtTapeLeft);
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_TLF | BUMPER_TRF)) {
+                        SWITCH(AvoidGoLeft);
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+
+        case TurnAtTapeLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    //                    left(-TURN_SPEED);
+                    //                    right(TURN_SPEED);
+                    left(-800);
+                    right(800);
+                    ES_Timer_InitTimer(TAPE_TURN_TIMER, 1200);
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == TAPE_TURN_TIMER) {
+                        switch (wallStatus) {
+                            case 1:
+                                SWITCH(GetCloserToWallRight);
+                                break;
+                            case -1:
+                                SWITCH(GetFurtherFromWallRight);
+                                break;
+                            default:
+                                SWITCH(DriveAlongWallRight);
+                                break;
+                        }
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BL) {
+                        if (ThisEvent.EventParam == TAPE_TURN_TIMER) {
+                            switch (wallStatus) {
+                                case 1:
+                                    SWITCH(GetCloserToWallLeft);
+                                    break;
+                                case -1:
+                                    SWITCH(GetFurtherFromWallLeft);
+                                    break;
+                                default:
+                                    SWITCH(DriveAlongWallLeft);
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+                case WALL_CLOSE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        wallStatus = -1;
+                    }
+                    break;
+                case WALL_FAR:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        wallStatus = 1;
+                    }
+                    break;
+                case WALL_IN_RANGE:
+                    if (ThisEvent.EventParam & WALL_LEFT) {
+                        wallStatus = 0;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+
+        case AvoidGoLeft:
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            ThisEvent = RunAvoidGoLeftSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS | BUMPER_BRF | BUMPER_BRS)) {
+                        SWITCH(TouchedWallLeft);
+                    }
+                    break;
+                case TAPE_ON:
+                    SWITCH(TurnAtTapeLeft);
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case AvoidGoRight:
+            // run sub-state machine for this state
+            // NOTE: the SubState Machine runs and responds to events before anything in the this
+            // state machine does
+            ThisEvent = RunAvoidGoRightSubHSM(ThisEvent);
+            switch (ThisEvent.EventType) {
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS | BUMPER_BRF | BUMPER_BRS)) {
+                        SWITCH(TouchedWallRight);
+                    }
+                    break;
+                case TAPE_ON:
+                    SWITCH(TurnAtTapeRight);
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+
+        default: // all unhandled states fall into here
+            break;
     } // end switch on Current State
 
-    if (makeTransition == TRUE)
-    { // making a state transition, send EXIT and ENTRY
+    if (makeTransition == TRUE) { // making a state transition, send EXIT and ENTRY
         // recursively call the current state with an exit event
         RunFollowWallSubHSM(EXIT_EVENT); // <- rename to your own Run function
         CurrentState = nextState;

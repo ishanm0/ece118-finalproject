@@ -152,7 +152,7 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
         // This section is used to reset service for some reason
         break;
 
-    case BUMPER:
+    case BUMPER_ON:
         printf("\r\nBumper: %04x", ThisEvent.EventParam);
         if ((ThisEvent.EventParam & (BUMPER_FLR | BUMPER_FLB)) && !leftDriving)
         {
@@ -215,7 +215,7 @@ ES_Event RunTemplateService(ES_Event ThisEvent)
         }
         break;
 
-    case TAPE:
+    case TAPE_ON:
         printf("\r\nTape: %x", ThisEvent.EventParam);
         if ((ThisEvent.EventParam & (TAPE_FL | TAPE_FR)))
         {
