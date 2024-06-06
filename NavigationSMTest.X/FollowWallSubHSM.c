@@ -353,7 +353,7 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(TURN_SPEED);
             right(-TURN_SPEED);
-            ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME);
+            ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME_RIGHT);
             break;
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == TAPE_TURN_TIMER)
@@ -583,7 +583,7 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
         case ES_ENTRY:
             left(-TURN_SPEED);
             right(TURN_SPEED);
-            ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME);
+            ES_Timer_InitTimer(TAPE_TURN_TIMER, TAPE_TURN_TIME_LEFT);
             break;
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == TAPE_TURN_TIMER)
@@ -618,6 +618,42 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent)
             if (ThisEvent.EventParam & WALL_LEFT)
             {
                 wallStatus = 0;
+            }
+            break;
+        case TAPE_ON:
+            if (ThisEvent.EventParam & (TAPE_BL))
+            {
+                ES_Timer_StopTimer(TAPE_TURN_TIMER);
+                switch (wallStatus)
+                {
+                case 1:
+                    SWITCH(GetCloserToWallRight);
+                    break;
+                case -1:
+                    SWITCH(GetFurtherFromWallRight);
+                    break;
+                default:
+                    SWITCH(DriveAlongWallRight);
+                    break;
+                }
+            }
+            break;
+        case BUMPER_ON:
+            if (ThisEvent.EventParam & (BUMPER_BLF | BUMPER_BLS))
+            {
+                ES_Timer_StopTimer(TAPE_TURN_TIMER);
+                switch (wallStatus)
+                {
+                case 1:
+                    SWITCH(GetCloserToWallRight);
+                    break;
+                case -1:
+                    SWITCH(GetFurtherFromWallRight);
+                    break;
+                default:
+                    SWITCH(DriveAlongWallRight);
+                    break;
+                }
             }
             break;
         case ES_NO_EVENT:

@@ -152,14 +152,14 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             InitZigZagSubHSM();
             // now put the machine into the actual initial state
             nextState = FindWall;
-            //            nextState = GameOver;
+            // nextState = FollowTape;
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
         }
         else if (ThisEvent.EventType == ES_EXIT)
         {
             ES_Timer_InitTimer(GAME_TIMER, 2 * 60 * 1000);
-            ES_Timer_InitTimer(COLLECT1_TIMER, 5 * 1000);
+            ES_Timer_InitTimer(COLLECT1_TIMER, 45 * 1000);
             ES_Timer_InitTimer(COLLECT2_TIMER, 90 * 1000);
         }
         break;
@@ -199,7 +199,7 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
             }
             else if (ThisEvent.EventParam == COLLECT2_TIMER)
             {
-                collect2Timer++;
+                SWITCH(ZigZag);
             }
             break;
         case AT_DOOR_TAPE:
@@ -208,15 +208,20 @@ ES_Event RunMainHSM(ES_Event ThisEvent)
                 SWITCH(Deposit);
                 collect1Timer = 0;
             }
-            else if (collect2Timer)
-            {
-                SWITCH(ZigZag);
-                collect2Timer = 0;
-            }
+            // else if (collect2Timer)
+            // {
+            //     // SWITCH(GameOver);
+            //     SWITCH(ZigZag);
+            //     collect2Timer = 0;
+            // }
             break;
         case ES_NO_EVENT:
         default:
             break;
+        }
+        if (collect2Timer) {
+            SWITCH(ZigZag);
+            collect2Timer = 0;
         }
         break;
     case Deposit:

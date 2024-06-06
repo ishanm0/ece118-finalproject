@@ -7,21 +7,37 @@
 #include "BOARD.h"
 #include "MainHSM.h"
 #include "ZigZagSubHSM.h"
+#include "Common.h"
 
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
-typedef enum {
-    InitPSubState,
-    SubFirstState,
+typedef enum
+{
+    InitPState,
+    DriveForwardPreparingRightTurn,
+    DriveForwardPreparingLeftTurn,
+    RotateLeft,
+    RotateRight,
+    RotateRandom,
+    ReverseABit,
+    ReverseTurnLeft,
+    ReverseTurnRight,
 } ZigZagSubHSMState_t;
 
 static const char *StateNames[] = {
-	"InitPSubState",
-	"SubFirstState",
+    "InitPState",
+	"DriveForwardPreparingRightTurn",
+	"DriveForwardPreparingLeftTurn",
+	"RotateLeft",
+	"RotateRight",
+	"RotateRandom",
+	"ReverseABit",
+	"ReverseTurnLeft",
+	"ReverseTurnRight",
 };
 
-
+#define REVERSE_TURN_MS 330
 
 /*******************************************************************************
  * PRIVATE FUNCTION PROTOTYPES                                                 *
@@ -35,9 +51,8 @@ static const char *StateNames[] = {
 /* You will need MyPriority and the state variable; you may need others as well.
  * The type of state variable should match that of enum in header file. */
 
-static ZigZagSubHSMState_t CurrentState = InitPSubState; // <- change name to match ENUM
+static ZigZagSubHSMState_t CurrentState = InitPState; // <- change name to match ENUM
 static uint8_t MyPriority;
-
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -57,9 +72,10 @@ uint8_t InitZigZagSubHSM(void)
 {
     ES_Event returnEvent;
 
-    CurrentState = InitPSubState;
+    CurrentState = InitPState;
     returnEvent = RunZigZagSubHSM(INIT_EVENT);
-    if (returnEvent.EventType == ES_NO_EVENT) {
+    if (returnEvent.EventType == ES_NO_EVENT)
+    {
         return TRUE;
     }
     return FALSE;
@@ -83,38 +99,234 @@ uint8_t InitZigZagSubHSM(void)
 ES_Event RunZigZagSubHSM(ES_Event ThisEvent)
 {
     uint8_t makeTransition = FALSE; // use to flag transition
-    ZigZagSubHSMState_t nextState; // <- change type to correct enum
+    ZigZagSubHSMState_t nextState;  // <- change type to correct enum
 
     ES_Tattle(); // trace call stack
 
     switch (CurrentState) {
-    case InitPSubState: // If current state is initial Psedudo State
-        if (ThisEvent.EventType == ES_INIT)// only respond to ES_Init
-        {
-            // this is where you would put any actions associated with the
-            // transition from the initial pseudo-state into the actual
-            // initial state
-
-            // now put the machine into the actual initial state
-            nextState = SubFirstState;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-        }
-        break;
-
-    case SubFirstState: // in the first state, replace this with correct names
-        switch (ThisEvent.EventType) {
-        case ES_NO_EVENT:
-        default: // all unhandled events pass the event back up to the next level
+        case InitPState: // If current state is initial Pseudo State
+            if (ThisEvent.EventType == ES_INIT) // only respond to ES_Init
+            {
+                // intake(TRUE);
+                nextState = DriveForwardPreparingRightTurn;
+                makeTransition = TRUE;
+                ThisEvent.EventType = ES_NO_EVENT;
+            }
             break;
-        }
-        break;
-        
-    default: // all unhandled states fall into here
-        break;
-    } // end switch on Current State
+        case DriveForwardPreparingRightTurn:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    printf("\r\ndriving!");
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL | TAPE_FR) {
+                        nextState = RotateRight;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = ReverseTurnRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = ReverseTurnLeft;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_BLF | BUMPER_BRF | BUMPER_BLS | BUMPER_BRS) {
+                        nextState = ReverseABit;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case DriveForwardPreparingLeftTurn:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    printf("\r\ndriving!");
+                    left(DRIVE_SPEED);
+                    right(DRIVE_SPEED);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_FL | TAPE_FR) {
+                        nextState = RotateLeft;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = ReverseTurnRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = ReverseTurnLeft;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_BLF | BUMPER_BRF | BUMPER_BLS | BUMPER_BRS) {
+                        nextState = ReverseABit;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_NO_EVENT:
+                default:
+                    break;
+            }
+            break;
+        case RotateRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-TURN_SPEED);
+                    right(TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1000);
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = ReverseTurnRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = ReverseTurnLeft;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_BLF | BUMPER_BRF | BUMPER_BLS | BUMPER_BRS) {
+                        nextState = ReverseABit;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BL) {
+                        nextState = DriveForwardPreparingLeftTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER){
+                        nextState = DriveForwardPreparingLeftTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case RotateLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(TURN_SPEED);
+                    right(-TURN_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1000);
+                    break;
+                case BUMPER_ON:
+                    if (ThisEvent.EventParam & BUMPER_TRF) {
+                        nextState = ReverseTurnRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_TLF) {
+                        nextState = ReverseTurnLeft;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & BUMPER_BLF | BUMPER_BRF | BUMPER_BLS | BUMPER_BRS) {
+                        nextState = ReverseABit;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BR) {
+                        nextState = DriveForwardPreparingRightTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER){
+                        nextState = DriveForwardPreparingLeftTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case RotateRandom:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(0);
+                    right(-DRIVE_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 1200);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = DriveForwardPreparingRightTurn;
+                    makeTransition = TRUE;
+                    break;
+            }
+            break;
+        case ReverseABit:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-DRIVE_SPEED);
+                    right(-DRIVE_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, 200);
+                    break;
+                case ES_TIMEOUT:
+                    nextState = RotateRandom;
+                    makeTransition = TRUE;
+                    break;
+            }
+            break;
+        case ReverseTurnRight:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-DRIVE_SPEED);
+                    right(-500);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, REVERSE_TURN_MS);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BL) {
+                        nextState = RotateRight;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & TAPE_BR) {
+                        nextState = RotateLeft;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = DriveForwardPreparingRightTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case ReverseTurnLeft:
+            switch (ThisEvent.EventType) {
+                case ES_ENTRY:
+                    left(-500);
+                    right(-DRIVE_SPEED);
+                    ES_Timer_InitTimer(NAV_ROTATE_TIMER, REVERSE_TURN_MS);
+                    break;
+                case TAPE_ON:
+                    if (ThisEvent.EventParam & TAPE_BL) {
+                        nextState = RotateLeft;
+                        makeTransition = TRUE;
+                    } else if (ThisEvent.EventParam & TAPE_BR) {
+                        nextState = RotateRight;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                case ES_TIMEOUT:
+                    if (ThisEvent.EventParam == NAV_ROTATE_TIMER) {
+                        nextState = DriveForwardPreparingRightTurn;
+                        makeTransition = TRUE;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            break;
+        default: // all unhandled states fall into here
+            break;
+    }
 
-    if (makeTransition == TRUE) { // making a state transition, send EXIT and ENTRY
+    if (makeTransition == TRUE)
+    { // making a state transition, send EXIT and ENTRY
         // recursively call the current state with an exit event
         RunZigZagSubHSM(EXIT_EVENT); // <- rename to your own Run function
         CurrentState = nextState;
@@ -125,8 +337,6 @@ ES_Event RunZigZagSubHSM(ES_Event ThisEvent)
     return ThisEvent;
 }
 
-
 /*******************************************************************************
  * PRIVATE FUNCTIONS                                                           *
  ******************************************************************************/
-

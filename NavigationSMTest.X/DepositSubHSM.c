@@ -24,6 +24,7 @@ typedef enum
     BackToDoor,
     FrontFromDoor,
     Depositing,
+    TurnBackToWall,
 } DepositSubHSMState_t;
 
 static const char *StateNames[] = {
@@ -36,6 +37,7 @@ static const char *StateNames[] = {
     "BackToDoor",
     "FrontFromDoor",
     "Depositing",
+    "TurnBackToWall",
 };
 
 /*******************************************************************************
@@ -225,8 +227,8 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
         {
         case ES_ENTRY:
             left(TURN_SPEED);
-            right(0);
-            ES_Timer_InitTimer(NAV_TIMER, RIGHT_ONEWHEEL_TURN_MS);
+            right(-TURN_SPEED);
+            ES_Timer_InitTimer(NAV_TIMER, RIGHT_TANK_TURN_MS);
             break;
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == NAV_TIMER)
@@ -289,8 +291,28 @@ ES_Event RunDepositSubHSM(ES_Event ThisEvent)
         case ES_TIMEOUT:
             if (ThisEvent.EventParam == DEPOSIT_TIMER)
             {
-                ThisEvent.EventType = DEPOSIT_DONE;
                 door(FALSE);
+                SWITCH(TurnBackToWall);
+            }
+            break;
+        case ES_NO_EVENT:
+        default:
+            break;
+        }
+        break;
+
+    case TurnBackToWall:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            left(-TURN_SPEED);
+            right(TURN_SPEED);
+            ES_Timer_InitTimer(NAV_TIMER, RIGHT_TANK_TURN_MS);
+            break;
+        case ES_TIMEOUT:
+            if (ThisEvent.EventParam == NAV_TIMER)
+            {
+                ThisEvent.EventType = DEPOSIT_DONE;
             }
             break;
         case ES_NO_EVENT:

@@ -5,7 +5,7 @@
      This file contains macro definitions that are edited by the user to
      adapt the Events and Services framework to a particular application.
  Notes
-     
+
  History
  When           Who     What/Why
  -------------- ---     --------
@@ -15,33 +15,33 @@
 #ifndef CONFIGURE_H
 #define CONFIGURE_H
 
+// defines for keyboard input
+// #define USE_KEYBOARD_INPUT
+// What State machine are we testing
+// #define POSTFUNCTION_FOR_KEYBOARD_INPUT PostGenericService
 
+// define for TattleTale
+//  #define USE_TATTLETALE
 
-//defines for keyboard input
-//#define USE_KEYBOARD_INPUT
-//What State machine are we testing
-//#define POSTFUNCTION_FOR_KEYBOARD_INPUT PostGenericService
-
-//define for TattleTale
-// #define USE_TATTLETALE
-
-//uncomment to supress the entry and exit events
-// #define SUPPRESS_EXIT_ENTRY_IN_TATTLE
+// uncomment to supress the entry and exit events
+//  #define SUPPRESS_EXIT_ENTRY_IN_TATTLE
 
 /****************************************************************************/
 // Name/define the events of interest
 // Universal events occupy the lowest entries, followed by user-defined events
 
 /****************************************************************************/
-typedef enum {
-    ES_NO_EVENT, ES_ERROR, /* used to indicate an error from the service */
-    ES_INIT, /* used to transition from initial pseudo-state */
-    ES_ENTRY, /* used to enter a state*/
-    ES_EXIT, /* used to exit a state*/
-    ES_KEYINPUT, /* used to signify a key has been pressed*/
-    ES_LISTEVENTS, /* used to list events in keyboard input, does not get posted to fsm*/
-    ES_TIMEOUT, /* signals that the timer has expired */
-    ES_TIMERACTIVE, /* signals that a timer has become active */
+typedef enum
+{
+    ES_NO_EVENT,
+    ES_ERROR,        /* used to indicate an error from the service */
+    ES_INIT,         /* used to transition from initial pseudo-state */
+    ES_ENTRY,        /* used to enter a state*/
+    ES_EXIT,         /* used to exit a state*/
+    ES_KEYINPUT,     /* used to signify a key has been pressed*/
+    ES_LISTEVENTS,   /* used to list events in keyboard input, does not get posted to fsm*/
+    ES_TIMEOUT,      /* signals that the timer has expired */
+    ES_TIMERACTIVE,  /* signals that a timer has become active */
     ES_TIMERSTOPPED, /* signals that a timer has stopped*/
     /* User-defined events start here */
     BATTERY_CONNECTED,
@@ -60,33 +60,30 @@ typedef enum {
 } ES_EventTyp_t;
 
 static const char *EventNames[] = {
-	"ES_NO_EVENT",
-	"ES_ERROR",
-	"ES_INIT",
-	"ES_ENTRY",
-	"ES_EXIT",
-	"ES_KEYINPUT",
-	"ES_LISTEVENTS",
-	"ES_TIMEOUT",
-	"ES_TIMERACTIVE",
-	"ES_TIMERSTOPPED",
-	"BATTERY_CONNECTED",
-	"BATTERY_DISCONNECTED",
-	"BUMPER_ON",
-	"BUMPER_OFF",
-	"TAPE_ON",
-	"TAPE_OFF",
-	"WALL_CLOSE",
-	"WALL_FAR",
-	"WALL_IN_RANGE",
-	"WALL_ALIGNED",
-	"AT_DOOR_TAPE",
-	"DEPOSIT_DONE",
-	"NUMBEROFEVENTS",
+    "ES_NO_EVENT",
+    "ES_ERROR",
+    "ES_INIT",
+    "ES_ENTRY",
+    "ES_EXIT",
+    "ES_KEYINPUT",
+    "ES_LISTEVENTS",
+    "ES_TIMEOUT",
+    "ES_TIMERACTIVE",
+    "ES_TIMERSTOPPED",
+    "BATTERY_CONNECTED",
+    "BATTERY_DISCONNECTED",
+    "BUMPER_ON",
+    "BUMPER_OFF",
+    "TAPE_ON",
+    "TAPE_OFF",
+    "WALL_CLOSE",
+    "WALL_FAR",
+    "WALL_IN_RANGE",
+    "WALL_ALIGNED",
+    "AT_DOOR_TAPE",
+    "DEPOSIT_DONE",
+    "NUMBEROFEVENTS",
 };
-
-
-
 
 /****************************************************************************/
 // This are the name of the Event checking function header file.
@@ -94,7 +91,7 @@ static const char *EventNames[] = {
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST  TemplateCheckBattery, CheckBumpers, CheckTapeSensors, CheckWallSensors
+#define EVENT_CHECK_LIST TemplateCheckBattery, CheckBumpers, CheckTapeSensors, CheckWallSensors
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -118,7 +115,6 @@ static const char *EventNames[] = {
 #define TIMER14_RESP_FUNC TIMER_UNUSED
 #define TIMER15_RESP_FUNC TIMER_UNUSED
 
-
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
 // to different timers if the need arises. Keep these definitons close to the
@@ -135,9 +131,8 @@ static const char *EventNames[] = {
 #define TAPE_TURN_TIMER 6
 #define DEPOSIT_TIMER 7
 
-
 /****************************************************************************/
-// The maximum number of services sets an upper bound on the number of 
+// The maximum number of services sets an upper bound on the number of
 // services that the framework will handle. Reasonable values are 8 and 16
 // HOWEVER: at this time only a value of 8 is supported.
 #define MAX_NUM_SERVICES 8
@@ -149,8 +144,8 @@ static const char *EventNames[] = {
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service
-// every Events and Services application must have a Service 0. Further 
-// services are added in numeric sequence (1,2,3,...) with increasing 
+// every Events and Services application must have a Service 0. Further
+// services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public fuction prototypes
 #define SERV_0_HEADER "ES_KeyboardInput.h"
@@ -185,8 +180,6 @@ static const char *EventNames[] = {
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
-
-
 
 /****************************************************************************/
 // These are the definitions for Service 3
@@ -254,43 +247,39 @@ static const char *EventNames[] = {
 #endif
 
 /****************************************************************************/
-// the name of the posting function that you want executed when a new 
+// the name of the posting function that you want executed when a new
 // keystroke is detected.
 // The default initialization distributes keystrokes to all state machines
 #define POST_KEY_FUNC ES_PostAll
-
-
 
 /****************************************************************************/
 // These are the definitions for the Distribution lists. Each definition
 // should be a comma seperated list of post functions to indicate which
 // services are on that distribution list.
 #define NUM_DIST_LISTS 0
-#if NUM_DIST_LISTS > 0 
+#if NUM_DIST_LISTS > 0
 #define DIST_LIST0 PostTemplateFSM
 #endif
-#if NUM_DIST_LISTS > 1 
+#if NUM_DIST_LISTS > 1
 #define DIST_LIST1 PostTemplateFSM
 #endif
-#if NUM_DIST_LISTS > 2 
+#if NUM_DIST_LISTS > 2
 #define DIST_LIST2 PostTemplateFSM
 #endif
-#if NUM_DIST_LISTS > 3 
+#if NUM_DIST_LISTS > 3
 #define DIST_LIST3 PostTemplateFSM
 #endif
-#if NUM_DIST_LISTS > 4 
+#if NUM_DIST_LISTS > 4
 #define DIST_LIST4 PostTemplateFSM
 #endif
-#if NUM_DIST_LISTS > 5 
+#if NUM_DIST_LISTS > 5
 #define DIST_LIST5 PostTemplateFSM
 #endif
-#if NUM_DIST_LISTS > 6 
+#if NUM_DIST_LISTS > 6
 #define DIST_LIST6 PostTemplateFSM
 #endif
-#if NUM_DIST_LISTS > 7 
+#if NUM_DIST_LISTS > 7
 #define DIST_LIST7 PostTemplateFSM
 #endif
-
-
 
 #endif /* CONFIGURE_H */

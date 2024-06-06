@@ -22,6 +22,8 @@
 
 #define NUM_CHECKS 5
 
+#define BUMPER_DEBOUNCE_TIME 10
+
 /*******************************************************************************
  * EVENTCHECKER_TEST SPECIFIC CODE                                                             *
  ******************************************************************************/
@@ -49,6 +51,7 @@
 static uint8_t bumperState;
 static uint8_t bumperBuffer[NUM_CHECKS];
 static uint8_t idx;
+static uint32_t topBumperTimes[4] = {0, 0, 0, 0};
 static uint16_t tapeState = 0;
 static int distLStatus = 0;
 static int distRStatus = 0;
@@ -147,9 +150,34 @@ uint8_t CheckBumpers(void)
             // any high bit represents a bumper that was pressed
             thisEvent.EventType = BUMPER_ON;
             thisEvent.EventParam = xor&newBumperState;
-            returnVal = TRUE;
-            PostMainHSM(thisEvent);
-            // PostNavigationTestHSM(thisEvent);
+
+            if ((thisEvent.EventParam & (BUMPER_TLF | BUMPER_TLS | BUMPER_TRF | BUMPER_TRS)) ||
+                (thisEvent.EventParam & BUMPER_BLF) && (ES_Timer_GetTime() - topBumperTimes[0] > BUMPER_DEBOUNCE_TIME) ||
+                (thisEvent.EventParam & BUMPER_BLS) && (ES_Timer_GetTime() - topBumperTimes[1] > BUMPER_DEBOUNCE_TIME) ||
+                (thisEvent.EventParam & BUMPER_BRS) && (ES_Timer_GetTime() - topBumperTimes[2] > BUMPER_DEBOUNCE_TIME) ||
+                (thisEvent.EventParam & BUMPER_BRF) && (ES_Timer_GetTime() - topBumperTimes[3] > BUMPER_DEBOUNCE_TIME))
+            {
+                returnVal = TRUE;
+                PostMainHSM(thisEvent);
+                // PostNavigationTestHSM(thisEvent);
+            }
+
+            if (thisEvent.EventParam & BUMPER_TLF)
+            {
+                topBumperTimes[0] = ES_Timer_GetTime();
+            }
+            else if (thisEvent.EventParam & BUMPER_TLS)
+            {
+                topBumperTimes[1] = ES_Timer_GetTime();
+            }
+            else if (thisEvent.EventParam & BUMPER_TRS)
+            {
+                topBumperTimes[2] = ES_Timer_GetTime();
+            }
+            else if (thisEvent.EventParam & BUMPER_TRF)
+            {
+                topBumperTimes[3] = ES_Timer_GetTime();
+            }
         }
         bumperState = newBumperState;
     }
@@ -248,6 +276,8 @@ uint8_t CheckWallSensors(void)
     {
         newRStatus = distRStatus;
     }
+
+    // printf("\r\n%d %d %d %d", distL, distR, newLStatus, newRStatus);
 
     if (newLStatus != distLStatus)
     {

@@ -4,7 +4,7 @@
  * Modified: Gabriel H Elkaim and Soja-Marie Morgens
  *
  * Template file to set up a Heirarchical SubState Machine to work with the Events and
- * Services Framework (ES_Framework) on the Uno32 for the CMPE-118/L class. Note that 
+ * Services Framework (ES_Framework) on the Uno32 for the CMPE-118/L class. Note that
  * this file will need to be modified to fit your exact needs, and most of the names
  * will have to be changed to match your code.
  *
@@ -17,25 +17,22 @@
  * Updated on 16/Sep/2013
  */
 
-#ifndef FOLLOW_WALL_SUB_HSM_H  // <- This should be changed to your own guard on both
-#define FOLLOW_WALL_SUB_HSM_H  //    of these lines
-
+#ifndef FOLLOW_WALL_SUB_HSM_H // <- This should be changed to your own guard on both
+#define FOLLOW_WALL_SUB_HSM_H //    of these lines
 
 /*******************************************************************************
  * PUBLIC #INCLUDES                                                            *
  ******************************************************************************/
 
-#include "ES_Configure.h"   // defines ES_Event, INIT_EVENT, ENTRY_EVENT, and EXIT_EVENT
+#include "ES_Configure.h" // defines ES_Event, INIT_EVENT, ENTRY_EVENT, and EXIT_EVENT
 
 /*******************************************************************************
  * PUBLIC #DEFINES                                                             *
  ******************************************************************************/
 
-
 /*******************************************************************************
  * PUBLIC TYPEDEFS                                                             *
  ******************************************************************************/
-
 
 /*******************************************************************************
  * PUBLIC FUNCTION PROTOTYPES                                                  *
@@ -73,4 +70,3 @@ ES_Event RunFollowWallSubHSM(ES_Event ThisEvent);
 void setWallStatus(int status);
 
 #endif /* SUB_HSM_Template_H */
-
